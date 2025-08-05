@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+
 class AppBottomBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -13,11 +15,11 @@ class AppBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
+
     return Container(
       height: 80 + bottomPadding,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
@@ -73,40 +75,48 @@ class AppBottomBar extends StatelessWidget {
     required int index,
     required bool isActive,
   }) {
-    return GestureDetector(
-      onTap: () => onTap(index),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Icon(
-          isActive ? activeIcon : icon,
-          color: isActive ? const Color(0xFF756EF3) : Colors.grey,
-          size: 28,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onTap(index),
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            isActive ? activeIcon : icon,
+            color: isActive ? AppColors.primary : AppColors.textSecondary,
+            size: 28,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildAddButton() {
-    return GestureDetector(
-      onTap: () => onTap(2),
+    return Container(
+      padding: const EdgeInsets.only(bottom: 12, left: 8, right: 8, top: 4),
       child: Container(
         width: 56,
         height: 56,
-        decoration: const BoxDecoration(
-          color: Color(0xFF756EF3),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Color(0x40756EF3),
+              color: AppColors.primary.withValues(alpha: 0.25),
               blurRadius: 8,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 28,
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: () => onTap(2),
+            borderRadius: BorderRadius.circular(28),
+            child: const Icon(Icons.add, color: AppColors.background, size: 28),
+          ),
         ),
       ),
     );
