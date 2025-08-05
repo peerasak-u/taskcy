@@ -16,28 +16,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     const OnboardingPage(
-      title: 'Welcome to Taskcy',
-      description: 'Manage your projects and tasks with a JIRA-like interface but more friendly.',
-      icon: Icons.task_alt,
-      color: Colors.blue,
+      title: 'Let\'s create a Space for your workflows.',
+      highlightWord: 'Space',
+      subtitle: 'Task Management',
+      imagePath: 'assets/images/onboarding_1.png',
     ),
     const OnboardingPage(
-      title: 'Organize Projects',
-      description: 'Create teams, organize projects, and collaborate with your team members.',
-      icon: Icons.folder_open,
-      color: Colors.orange,
+      title: 'Work more Structured and Organized 👌',
+      highlightWord: 'Structured',
+      subtitle: 'Task Management',
+      imagePath: 'assets/images/onboarding_2.png',
     ),
     const OnboardingPage(
-      title: 'Track Tasks',
-      description: 'Monitor task progress, set priorities, and never miss a deadline.',
-      icon: Icons.track_changes,
-      color: Colors.green,
-    ),
-    const OnboardingPage(
-      title: 'Stay Connected',
-      description: 'Chat with your team and stay updated on project progress.',
-      icon: Icons.chat,
-      color: Colors.purple,
+      title: 'Manage your Tasks quickly for Results ✌️',
+      highlightWord: 'Tasks',
+      subtitle: 'Task Management',
+      imagePath: 'assets/images/onboarding_3.png',
     ),
   ];
 
@@ -65,31 +59,72 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   final page = _pages[index];
                   return Padding(
-                    padding: const EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.only(left: 30.0, right: 24.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          page.icon,
-                          size: 120,
-                          color: page.color,
-                        ),
-                        const SizedBox(height: 48),
-                        Text(
-                          page.title,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(height: 60),
+                        Container(
+                          height: 300,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          textAlign: TextAlign.center,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              page.imagePath,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Text(
+                                    'Image not found',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            page.subtitle,
+                            style: const TextStyle(
+                              color: Color(0xFF756EF3),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          page.description,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey[600],
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            child: RichText(
+                              textAlign: TextAlign.left,
+                              text: TextSpan(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                children: _buildStyledTitle(
+                                  page.title,
+                                  page.highlightWord,
+                                ),
+                              ),
+                            ),
                           ),
-                          textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 80),
                       ],
                     ),
                   );
@@ -101,7 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: List.generate(
                       _pages.length,
                       (index) => Container(
@@ -110,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: _currentPage == index ? 24 : 8,
                         decoration: BoxDecoration(
                           color: _currentPage == index
-                              ? Theme.of(context).primaryColor
+                              ? const Color(0xFF756EF3)
                               : Colors.grey[300],
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -121,23 +156,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (_currentPage > 0)
-                        TextButton(
-                          onPressed: _previousPage,
-                          child: const Text('Previous'),
-                        )
-                      else
-                        const SizedBox(width: 80),
-                      if (_currentPage < _pages.length - 1)
-                        FilledButton(
-                          onPressed: _nextPage,
-                          child: const Text('Next'),
-                        )
-                      else
-                        FilledButton(
-                          onPressed: _completeOnboarding,
-                          child: const Text('Get Started'),
+                      TextButton(
+                        onPressed: _completeOnboarding,
+                        child: Text(
+                          'Skip',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
                         ),
+                      ),
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF756EF3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: _currentPage < _pages.length - 1
+                              ? _nextPage
+                              : _completeOnboarding,
+                          icon: const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -156,28 +202,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  void _previousPage() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
   void _completeOnboarding() {
     context.read<AuthCubit>().completeOnboarding();
+  }
+
+  List<TextSpan> _buildStyledTitle(String title, String highlightWord) {
+    final parts = title.split(highlightWord);
+    final List<TextSpan> spans = [];
+
+    for (int i = 0; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        spans.add(TextSpan(text: parts[i]));
+      }
+
+      if (i < parts.length - 1) {
+        spans.add(
+          TextSpan(
+            text: highlightWord,
+            style: const TextStyle(color: Color(0xFF756EF3)),
+          ),
+        );
+      }
+    }
+
+    return spans;
   }
 }
 
 class OnboardingPage {
   final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
+  final String highlightWord;
+  final String subtitle;
+  final String imagePath;
 
   const OnboardingPage({
     required this.title,
-    required this.description,
-    required this.icon,
-    required this.color,
+    required this.highlightWord,
+    required this.subtitle,
+    required this.imagePath,
   });
 }
