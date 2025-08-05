@@ -1,26 +1,18 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../domain/models/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../services/auth_service_local.dart';
 
 class AuthRepositoryLocal implements AuthRepository {
-  static const String _isAuthenticatedKey = 'is_authenticated';
-  static const String _isOnboardingCompletedKey = 'onboarding_completed';
-  static const String _userIdKey = 'user_id';
-  static const String _userEmailKey = 'user_email';
-  static const String _userFullNameKey = 'user_full_name';
-  static const String _userAvatarUrlKey = 'user_avatar_url';
+  final AuthServiceLocal _authService = AuthServiceLocal();
 
   @override
   Future<bool> isAuthenticated() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_isAuthenticatedKey) ?? false;
+    return _authService.isAuthenticated();
   }
 
   @override
   Future<bool> isOnboardingCompleted() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_isOnboardingCompletedKey) ?? false;
+    return _authService.isOnboardingCompleted();
   }
 
   @override
@@ -40,8 +32,8 @@ class AuthRepositoryLocal implements AuthRepository {
       updatedAt: DateTime.now(),
     );
 
-    await _saveUser(user);
-    await _setAuthenticationStatus(true);
+    await _authService.saveUser(user);
+    await _authService.setAuthenticationStatus(true);
     
     return user;
   }
@@ -64,57 +56,25 @@ class AuthRepositoryLocal implements AuthRepository {
       updatedAt: DateTime.now(),
     );
 
-    await _saveUser(user);
-    await _setAuthenticationStatus(true);
+    await _authService.saveUser(user);
+    await _authService.setAuthenticationStatus(true);
     
     return user;
   }
 
   @override
   Future<void> signOut() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_isAuthenticatedKey, false);
-    await prefs.remove(_userIdKey);
-    await prefs.remove(_userEmailKey);
-    await prefs.remove(_userFullNameKey);
-    await prefs.remove(_userAvatarUrlKey);
+    await _authService.clearUserData();
   }
 
   @override
   Future<void> setOnboardingCompleted() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_isOnboardingCompletedKey, true);
+    await _authService.setOnboardingCompleted();
   }
 
   @override
   Future<User?> getCurrentUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString(_userIdKey);
-    
-    if (userId == null) return null;
-    
-    return User(
-      id: userId,
-      email: prefs.getString(_userEmailKey) ?? '',
-      fullName: prefs.getString(_userFullNameKey) ?? '',
-      avatarUrl: prefs.getString(_userAvatarUrlKey),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+    return _authService.getCurrentUser();
   }
 
-  Future<void> _saveUser(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userIdKey, user.id);
-    await prefs.setString(_userEmailKey, user.email);
-    await prefs.setString(_userFullNameKey, user.fullName);
-    if (user.avatarUrl != null) {
-      await prefs.setString(_userAvatarUrlKey, user.avatarUrl!);
-    }
-  }
-
-  Future<void> _setAuthenticationStatus(bool isAuthenticated) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_isAuthenticatedKey, isAuthenticated);
-  }
 }
