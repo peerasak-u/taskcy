@@ -20,13 +20,6 @@ class AppBottomBar extends StatelessWidget {
       height: 80 + bottomPadding,
       decoration: const BoxDecoration(
         color: AppColors.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, -2),
-          ),
-        ],
       ),
       child: Column(
         children: [
