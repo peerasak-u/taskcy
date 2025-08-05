@@ -102,6 +102,36 @@ The application manages these primary entities:
 - **Add Menu**: Dynamic height modal with blur backdrop
 - **Add Task/Create Team/Create Project**: Full-screen forms
 
+## Color Theme System
+
+The app uses a comprehensive color theme system located in `lib/ui/core/theme/`:
+
+### Color Palette
+- **Background**: White (`#FFFFFF`)
+- **Primary**: Purple (`#756EF3`)
+- **Secondary**: Light Purple (`#D1E2FE`)
+- **Blue**: `#63B4FF`
+- **Green**: `#B1D199`
+- **Orange**: `#FFB35A`
+
+### Usage
+```dart
+// Direct color access
+Container(color: AppColors.primary)
+
+// Theme extension access
+final customColors = Theme.of(context).extension<CustomColorsExtension>()!;
+Container(color: customColors.blue)
+
+// Standard theme colors
+Container(color: Theme.of(context).colorScheme.primary)
+```
+
+### Files
+- `app_colors.dart`: Color constants and palette
+- `custom_colors_extension.dart`: Theme extension for custom colors
+- `theme_state.dart`: Complete theme configuration for light/dark modes
+
 ## File Organization Conventions
 
 - **snake_case** for file names
