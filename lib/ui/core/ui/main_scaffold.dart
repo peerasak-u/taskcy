@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../widgets/custom_bottom_navigation.dart';
+import '../widgets/app_bottom_bar.dart';
 
 class MainScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -17,7 +17,7 @@ class MainScaffold extends StatelessWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: CustomBottomNavigation(
+      bottomNavigationBar: AppBottomBar(
         currentIndex: _getBottomNavigationIndex(currentLocation),
         onTap: (index) => _onTabTapped(context, index),
       ),

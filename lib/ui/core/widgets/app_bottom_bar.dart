@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class CustomBottomNavigation extends StatelessWidget {
+class AppBottomBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const CustomBottomNavigation({
+  const AppBottomBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
