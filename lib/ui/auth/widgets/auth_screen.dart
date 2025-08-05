@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/auth/cubit/auth_cubit.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_nav_bar.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -32,29 +33,9 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              height: 42,
-              padding: const EdgeInsets.only(left: 30, right: 30, top: 16),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios, size: 20),
-                  ),
-                  Expanded(
-                    child: Text(
-                      _isSignUp ? 'Sign Up' : 'Sign In',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
+            AppNavBar(
+              title: _isSignUp ? 'Sign Up' : 'Sign In',
+              onPressedBack: () => Navigator.of(context).pop(),
             ),
             Expanded(
               child: SingleChildScrollView(
