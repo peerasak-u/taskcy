@@ -11,6 +11,11 @@ class ProjectServiceLocal {
     final prefs = await SharedPreferences.getInstance();
     final projectsJson = prefs.getStringList(_projectsKey) ?? [];
     
+    if (projectsJson.isEmpty) {
+      await _seedInitialData();
+      return await getProjects();
+    }
+    
     return projectsJson.map((json) {
       final Map<String, dynamic> projectMap = jsonDecode(json);
       return Project(
@@ -157,5 +162,57 @@ class ProjectServiceLocal {
     }).toList();
     
     await prefs.setStringList(_projectsKey, projectsJson);
+  }
+
+  Future<void> _seedInitialData() async {
+    final now = DateTime.now();
+    
+    final mockProjects = [
+      Project(
+        id: 'project_1',
+        name: 'Application Design',
+        description: 'UI Design Kit for mobile productivity application with modern interface components',
+        teamId: 'team_1',
+        ownerId: 'user_1',
+        dueDate: now.add(const Duration(days: 30)),
+        createdAt: now.subtract(const Duration(days: 15)),
+        updatedAt: now.subtract(const Duration(hours: 6)),
+      ),
+      Project(
+        id: 'project_2',
+        name: 'Banking Mobile App',
+        description: 'UI Design for secure banking mobile application with payment integration',
+        teamId: 'team_2',
+        ownerId: 'user_2',
+        dueDate: now.add(const Duration(days: 45)),
+        createdAt: now.subtract(const Duration(days: 20)),
+        updatedAt: now.subtract(const Duration(hours: 12)),
+      ),
+      Project(
+        id: 'project_3',
+        name: 'Online Course',
+        description: 'Landing page design and course management platform development',
+        teamId: 'team_3',
+        ownerId: 'user_3',
+        dueDate: now.add(const Duration(days: 60)),
+        createdAt: now.subtract(const Duration(days: 10)),
+        updatedAt: now.subtract(const Duration(hours: 2)),
+      ),
+      Project(
+        id: 'project_4',
+        name: 'E-commerce Platform',
+        description: 'Complete e-commerce solution with modern shopping cart and checkout flow',
+        teamId: 'team_1',
+        ownerId: 'user_1',
+        dueDate: now.add(const Duration(days: 90)),
+        createdAt: now.subtract(const Duration(days: 5)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+    ];
+
+    await _saveProjects(mockProjects);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_projectCounterKey, mockProjects.length);
   }
 }

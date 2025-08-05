@@ -11,6 +11,11 @@ class TaskServiceLocal {
     final prefs = await SharedPreferences.getInstance();
     final tasksJson = prefs.getStringList(_tasksKey) ?? [];
     
+    if (tasksJson.isEmpty) {
+      await _seedInitialData();
+      return await getTasks();
+    }
+    
     return tasksJson.map((json) {
       final Map<String, dynamic> taskMap = jsonDecode(json);
       return Task(
@@ -172,5 +177,89 @@ class TaskServiceLocal {
     }).toList();
     
     await prefs.setStringList(_tasksKey, tasksJson);
+  }
+
+  Future<void> _seedInitialData() async {
+    final now = DateTime.now();
+    
+    final mockTasks = [
+      Task(
+        id: 'task_1',
+        title: 'Create Detail Booking',
+        description: 'Design and implement the detailed booking interface for mobile app',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.high,
+        projectId: 'project_1',
+        assigneeId: 'user_1',
+        dueDate: now.add(const Duration(days: 5)),
+        createdAt: now.subtract(const Duration(days: 3)),
+        updatedAt: now.subtract(const Duration(minutes: 2)),
+      ),
+      Task(
+        id: 'task_2',
+        title: 'Revision Home Page',
+        description: 'Update and refine the home page design based on user feedback',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.medium,
+        projectId: 'project_2',
+        assigneeId: 'user_2',
+        dueDate: now.add(const Duration(days: 3)),
+        createdAt: now.subtract(const Duration(days: 2)),
+        updatedAt: now.subtract(const Duration(minutes: 5)),
+      ),
+      Task(
+        id: 'task_3',
+        title: 'Working On Landing Page',
+        description: 'Develop the main landing page for the online course platform',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.high,
+        projectId: 'project_3',
+        assigneeId: 'user_3',
+        dueDate: now.add(const Duration(days: 7)),
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(minutes: 7)),
+      ),
+      Task(
+        id: 'task_4',
+        title: 'User Authentication System',
+        description: 'Implement secure user authentication and authorization',
+        status: TaskStatus.todo,
+        priority: TaskPriority.urgent,
+        projectId: 'project_1',
+        assigneeId: 'user_1',
+        dueDate: now.add(const Duration(days: 10)),
+        createdAt: now.subtract(const Duration(days: 5)),
+        updatedAt: now.subtract(const Duration(hours: 2)),
+      ),
+      Task(
+        id: 'task_5',
+        title: 'Payment Integration',
+        description: 'Integrate payment gateway for seamless transactions',
+        status: TaskStatus.completed,
+        priority: TaskPriority.high,
+        projectId: 'project_2',
+        assigneeId: 'user_2',
+        dueDate: now.subtract(const Duration(days: 1)),
+        createdAt: now.subtract(const Duration(days: 10)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+      Task(
+        id: 'task_6',
+        title: 'Course Content Management',
+        description: 'Build content management system for course materials',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.medium,
+        projectId: 'project_3',
+        assigneeId: 'user_3',
+        dueDate: now.add(const Duration(days: 14)),
+        createdAt: now.subtract(const Duration(days: 4)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+    ];
+
+    await _saveTasks(mockTasks);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_taskCounterKey, mockTasks.length);
   }
 }

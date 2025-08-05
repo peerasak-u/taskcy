@@ -1,93 +1,191 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+
 import '../../core/theme/app_colors.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
+import '../bloc/home_state.dart';
+import '../view_model/home_view_model.dart';
 import 'header_widget.dart';
 import 'motivational_banner_widget.dart';
 import 'project_card_widget.dart';
 import 'section_header_widget.dart';
 import 'task_item_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(const LoadHomeData());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentDate = DateFormat('EEEE, d').format(DateTime.now());
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             HeaderWidget(
-              dateText: 'Friday, 26',
+              dateText: currentDate,
               onMenuTap: () {},
               onNotificationTap: () {},
             ),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const MotivationalBannerWidget(),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 200,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        children: [
-                          ProjectCardWidget(
-                            title: 'Application Design',
-                            subtitle: 'UI Design Kit',
-                            teamAvatars: const ['', '', ''],
-                            currentProgress: 50,
-                            totalProgress: 80,
-                            backgroundColor: AppColors.primary,
-                            onTap: () {},
-                          ),
-                          const SizedBox(width: 16),
-                          ProjectCardWidget(
-                            title: 'Overlay Design',
-                            subtitle: 'UI Design',
-                            teamAvatars: const ['', ''],
-                            currentProgress: 30,
-                            totalProgress: 50,
-                            backgroundColor: AppColors.blue,
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    SectionHeaderWidget(title: 'In Progress', onTap: () {}),
-                    TaskItemWidget(
-                      title: 'Create Detail Booking',
-                      projectName: 'Productivity Mobile App',
-                      progress: 0.6,
-                      timeAgo: '2 min ago',
-                      progressColor: AppColors.primary,
-                      onTap: () {},
-                    ),
-                    TaskItemWidget(
-                      title: 'Revision Home Page',
-                      projectName: 'Banking Mobile App',
-                      progress: 0.7,
-                      timeAgo: '5 min ago',
-                      progressColor: AppColors.blue,
-                      onTap: () {},
-                    ),
-                    TaskItemWidget(
-                      title: 'Working On Landing Page',
-                      projectName: 'Online Course',
-                      progress: 0.8,
-                      timeAgo: '7 min ago',
-                      progressColor: AppColors.green,
-                      onTap: () {},
-                    ),
-                  ],
-                ),
+              child: BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeLoading || state is HomeInitial) {
+                    return _buildLoadingState();
+                  } else if (state is HomeLoaded) {
+                    return _buildLoadedState(state.homeData);
+                  } else if (state is HomeEmpty) {
+                    return _buildEmptyState();
+                  } else if (state is HomeError) {
+                    return _buildErrorState(state.message);
+                  }
+                  return _buildLoadingState();
+                },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  Widget _buildLoadedState(HomeViewModel homeData) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const MotivationalBannerWidget(),
+          const SizedBox(height: 24),
+          if (homeData.projects.isNotEmpty) ...[
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: homeData.projects.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 16),
+                itemBuilder: (context, index) {
+                  final project = homeData.projects[index];
+                  return ProjectCardWidget(
+                    title: project.title,
+                    subtitle: project.subtitle,
+                    teamAvatars: project.teamAvatars,
+                    currentProgress: project.currentProgress,
+                    totalProgress: project.totalProgress,
+                    backgroundColor: project.backgroundColor,
+                    onTap: () {},
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+          if (homeData.inProgressTasks.isNotEmpty) ...[
+            SectionHeaderWidget(title: 'In Progress', onTap: () {}),
+            ...homeData.inProgressTasks.map(
+              (task) => TaskItemWidget(
+                title: task.title,
+                projectName: task.projectName,
+                progress: task.progress,
+                timeAgo: task.timeAgo,
+                progressColor: task.progressColor,
+                onTap: () {},
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No projects or tasks yet',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Create your first project to get started',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 80,
+            color: Colors.red[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Something went wrong',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Colors.red[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              context.read<HomeBloc>().add(const LoadHomeData());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
       ),
     );
   }
