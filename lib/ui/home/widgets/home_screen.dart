@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
+import 'header_widget.dart';
+import 'motivational_banner_widget.dart';
+import 'project_card_widget.dart';
+import 'section_header_widget.dart';
+import 'task_item_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -6,35 +12,79 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.home,
-              size: 64,
-              color: Colors.blue,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Home Screen',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HeaderWidget(
+                dateText: 'Friday, 26',
+                onMenuTap: () {},
+                onNotificationTap: () {},
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Task dashboard and Today/Monthly views will be here',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
+              const MotivationalBannerWidget(),
+              const SizedBox(height: 24),
+              SizedBox(
+                height: 200,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    ProjectCardWidget(
+                      title: 'Application Design',
+                      subtitle: 'UI Design Kit',
+                      teamAvatars: const ['', '', ''],
+                      currentProgress: 50,
+                      totalProgress: 80,
+                      backgroundColor: AppColors.primary,
+                      onTap: () {},
+                    ),
+                    const SizedBox(width: 16),
+                    ProjectCardWidget(
+                      title: 'Overlay Design',
+                      subtitle: 'UI Design',
+                      teamAvatars: const ['', ''],
+                      currentProgress: 30,
+                      totalProgress: 50,
+                      backgroundColor: AppColors.blue,
+                      onTap: () {},
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+              SectionHeaderWidget(
+                title: 'In Progress',
+                onTap: () {},
+              ),
+              TaskItemWidget(
+                title: 'Create Detail Booking',
+                projectName: 'Productivity Mobile App',
+                progress: 0.6,
+                timeAgo: '2 min ago',
+                progressColor: AppColors.primary,
+                onTap: () {},
+              ),
+              TaskItemWidget(
+                title: 'Revision Home Page',
+                projectName: 'Banking Mobile App',
+                progress: 0.7,
+                timeAgo: '5 min ago',
+                progressColor: AppColors.blue,
+                onTap: () {},
+              ),
+              TaskItemWidget(
+                title: 'Working On Landing Page',
+                projectName: 'Online Course',
+                progress: 0.8,
+                timeAgo: '7 min ago',
+                progressColor: AppColors.green,
+                onTap: () {},
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );
