@@ -9,45 +9,25 @@ import '../bloc/chat_state.dart';
 import 'chat_item_widget.dart';
 import 'chat_search_field.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+class ChatScreen extends StatelessWidget {
+  final TextEditingController searchController;
+  
+  const ChatScreen({super.key, required this.searchController});
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _currentSearchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<ChatBloc>().add(const LoadChats());
-    _searchController.addListener(_onSearchChanged);
+  void _onSearchChanged(BuildContext context) {
+    final query = searchController.text.trim();
+    context.read<ChatBloc>().add(SearchChats(query: query));
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final query = _searchController.text.trim();
-    if (query != _currentSearchQuery) {
-      _currentSearchQuery = query;
-      context.read<ChatBloc>().add(SearchChats(query: query));
-    }
-  }
-
-  void _onSearchClear() {
-    _currentSearchQuery = '';
+  void _onSearchClear(BuildContext context) {
+    searchController.clear();
     context.read<ChatBloc>().add(const LoadChats());
   }
 
   @override
   Widget build(BuildContext context) {
+    // Load chats when screen is built
+    context.read<ChatBloc>().add(const LoadChats());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -61,11 +41,9 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
             ChatSearchField(
-              controller: _searchController,
-              onChanged: (value) {
-                // The listener will handle the search
-              },
-              onClear: _onSearchClear,
+              controller: searchController,
+              onChanged: (value) => _onSearchChanged(context),
+              onClear: () => _onSearchClear(context),
             ),
             Expanded(
               child: BlocBuilder<ChatBloc, ChatState>(
@@ -73,15 +51,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (state is ChatLoading || state is ChatInitial) {
                     return _buildLoadingState();
                   } else if (state is ChatLoaded) {
-                    return _buildLoadedState(state.chats);
+                    return _buildLoadedState(context, state.chats);
                   } else if (state is ChatSearchLoading) {
                     return _buildSearchLoadingState();
                   } else if (state is ChatSearchLoaded) {
-                    return _buildSearchResultsState(state.searchResults, state.query);
+                    return _buildSearchResultsState(context, state.searchResults, state.query);
                   } else if (state is ChatEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(context);
                   } else if (state is ChatError) {
-                    return _buildErrorState(state.message);
+                    return _buildErrorState(context, state.message);
                   }
                   return _buildLoadingState();
                 },
@@ -127,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildLoadedState(List chats) {
+  Widget _buildLoadedState(BuildContext context, List chats) {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ChatBloc>().add(const RefreshChats());
@@ -151,7 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildSearchResultsState(List searchResults, String query) {
+  Widget _buildSearchResultsState(BuildContext context, List searchResults, String query) {
     if (searchResults.isEmpty) {
       return Center(
         child: Column(
@@ -198,7 +176,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -227,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
