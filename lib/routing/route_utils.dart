@@ -12,6 +12,7 @@ class RouteUtils {
   static const String profilePath = '/profile';
   static const String authPath = '/auth';
   static const String onboardingPath = '/onboarding';
+  static const String addTaskPath = '/add-task';
 
   static String? handleAuthRedirect(BuildContext context, GoRouterState state) {
     final authState = context.read<AuthCubit>().state;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
+import '../../../routing/route_utils.dart';
 
 class AddMenuModal extends StatelessWidget {
   const AddMenuModal({super.key});
@@ -135,7 +137,7 @@ class AddMenuModal extends StatelessWidget {
 
   void _handleCreateTask(BuildContext context) {
     Navigator.of(context).pop();
-    // TODO: Navigate to create task screen
+    context.go(RouteUtils.addTaskPath);
   }
 
   void _handleCreateProject(BuildContext context) {

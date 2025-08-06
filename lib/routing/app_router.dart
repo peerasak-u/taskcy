@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../ui/core/auth/cubit/auth_cubit.dart';
+import '../ui/task/cubit/add_task_cubit.dart';
+import '../ui/task/widgets/add_task_screen.dart';
 import 'auth_routes.dart';
 import 'chat_routes.dart';
 import 'home_routes.dart';
@@ -18,6 +21,13 @@ GoRouter createAppRouter(AuthCubit authCubit) {
     refreshListenable: GoRouterRefreshStream(authCubit.stream),
     routes: [
       ...AuthRoutes.routes,
+      GoRoute(
+        path: RouteUtils.addTaskPath,
+        builder: (context, state) => BlocProvider(
+          create: (_) => AddTaskCubit(),
+          child: const AddTaskScreen(),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: RouteUtils.shellBuilder,
         branches: [
