@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -7,7 +8,7 @@ import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../view_model/home_view_model.dart';
-import 'header_widget.dart';
+import '../../shared/widgets/header_widget.dart';
 import 'motivational_banner_widget.dart';
 import 'project_card_widget.dart';
 import 'section_header_widget.dart';
@@ -37,9 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             HeaderWidget(
-              dateText: currentDate,
-              onMenuTap: () {},
-              onNotificationTap: () {},
+              centerText: currentDate,
+              leftIcon: Icons.menu,
+              rightIcon: Icons.notifications_outlined,
+              onLeftTap: () {},
+              onRightTap: () {},
             ),
             Expanded(
               child: BlocBuilder<HomeBloc, HomeState>(
@@ -103,7 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 32),
           ],
           if (homeData.inProgressTasks.isNotEmpty) ...[
-            SectionHeaderWidget(title: 'In Progress', onTap: () {}),
+            SectionHeaderWidget(
+              title: 'In Progress', 
+              onTap: () => context.push('/home/task-list/today'),
+            ),
             ...homeData.inProgressTasks.map(
               (task) => TaskItemWidget(
                 title: task.title,
