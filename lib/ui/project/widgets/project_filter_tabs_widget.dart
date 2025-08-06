@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../cubit/projects_cubit.dart';
+import '../bloc/projects_event.dart';
 
 class ProjectFilterTabsWidget extends StatelessWidget {
   final ProjectFilterType selectedFilter;

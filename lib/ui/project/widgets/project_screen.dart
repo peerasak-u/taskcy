@@ -3,37 +3,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
-import '../cubit/projects_cubit.dart';
-import '../cubit/projects_state.dart';
+import '../bloc/projects_bloc.dart';
+import '../bloc/projects_event.dart';
+import '../bloc/projects_state.dart';
 import '../view_model/projects_view_model.dart';
 import 'project_filter_tabs_widget.dart';
 import 'project_list_item_widget.dart';
 import 'project_search_widget.dart';
 
-class ProjectScreen extends StatefulWidget {
-  const ProjectScreen({super.key});
-
-  @override
-  State<ProjectScreen> createState() => _ProjectScreenState();
-}
-
-class _ProjectScreenState extends State<ProjectScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<ProjectsCubit>().initialize();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
+class ProjectScreen extends StatelessWidget {
+  final TextEditingController searchController;
+  
+  const ProjectScreen({super.key, required this.searchController});
 
   @override
   Widget build(BuildContext context) {
+    // Initialize projects data when screen is built
+    context.read<ProjectsBloc>().add(const LoadProjectsRequested());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -48,19 +34,19 @@ class _ProjectScreenState extends State<ProjectScreen> {
             ),
             const SizedBox(height: 16),
             ProjectSearchWidget(
-              controller: _searchController,
+              controller: searchController,
               onChanged: (query) {
-                context.read<ProjectsCubit>().updateSearchQuery(query);
+                context.read<ProjectsBloc>().add(ProjectSearchUpdated(searchQuery: query));
               },
             ),
             const SizedBox(height: 20),
-            BlocBuilder<ProjectsCubit, ProjectsState>(
+            BlocBuilder<ProjectsBloc, ProjectsState>(
               builder: (context, state) {
                 if (state is ProjectsLoaded) {
                   return ProjectFilterTabsWidget(
                     selectedFilter: state.projectsData.currentFilter,
                     onFilterChanged: (filter) {
-                      context.read<ProjectsCubit>().setFilter(filter);
+                      context.read<ProjectsBloc>().add(ProjectFilterChanged(filter: filter));
                     },
                     onGridIconTap: () {
                       // TODO: Toggle between list and grid view
@@ -70,23 +56,23 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 return ProjectFilterTabsWidget(
                   selectedFilter: ProjectFilterType.favourites,
                   onFilterChanged: (filter) {
-                    context.read<ProjectsCubit>().setFilter(filter);
+                    context.read<ProjectsBloc>().add(ProjectFilterChanged(filter: filter));
                   },
                 );
               },
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: BlocBuilder<ProjectsCubit, ProjectsState>(
+              child: BlocBuilder<ProjectsBloc, ProjectsState>(
                 builder: (context, state) {
                   if (state is ProjectsLoading) {
                     return _buildLoadingState();
                   } else if (state is ProjectsLoaded) {
-                    return _buildLoadedState(state.projectsData);
+                    return _buildLoadedState(context, state.projectsData);
                   } else if (state is ProjectsEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(context);
                   } else if (state is ProjectsError) {
-                    return _buildErrorState(state.message);
+                    return _buildErrorState(context, state.message);
                   }
                   return _buildLoadingState();
                 },
@@ -106,7 +92,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildLoadedState(ProjectsViewModel projectsData) {
+  Widget _buildLoadedState(BuildContext context, ProjectsViewModel projectsData) {
     return ListView.builder(
       itemCount: projectsData.projects.length,
       itemBuilder: (context, index) {
@@ -127,7 +113,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +142,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -184,7 +170,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              context.read<ProjectsCubit>().initialize();
+              context.read<ProjectsBloc>().add(const LoadProjectsRequested());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../domain/models/project.dart';
 import '../../../domain/models/task.dart';
 import '../../core/theme/app_colors.dart';
-import '../cubit/projects_cubit.dart';
+import '../bloc/projects_event.dart';
 
 class ProjectsViewModel extends Equatable {
   final List<ProjectItemViewModel> projects;
