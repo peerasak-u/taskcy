@@ -161,4 +161,17 @@ class TaskListCubit extends Cubit<TaskListState> {
       // Handle error silently for month data
     }
   }
+
+  /// Refresh the current task list data
+  Future<void> refresh() async {
+    final currentState = state;
+    if (currentState is TaskListLoaded) {
+      print('🔄 TaskListCubit: Refreshing task list for date: ${currentState.selectedDate}');
+      
+      emit(currentState.copyWith(isLoading: true));
+      
+      final today = DateTime.now();
+      await _loadDataForDate(currentState.selectedDate, currentState.taskType, today);
+    }
+  }
 }

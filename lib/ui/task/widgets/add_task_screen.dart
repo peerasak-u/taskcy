@@ -5,6 +5,7 @@ import '../../../domain/models/project.dart';
 import '../../../domain/models/user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../task_list/cubit/task_list_cubit.dart';
 import '../bloc/add_task_bloc.dart';
 import '../bloc/add_task_event.dart';
 import '../cubit/add_task_state.dart';
@@ -83,6 +84,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     return BlocListener<AddTaskBloc, AddTaskState>(
       listener: (context, state) {
         if (state is AddTaskSuccess) {
+          // Refresh task list if available
+          try {
+            context.read<TaskListCubit>().refresh();
+            print('🔄 AddTaskScreen: Triggered task list refresh after task creation');
+          } catch (e) {
+            print('⚠️ AddTaskScreen: TaskListCubit not found, refresh not triggered');
+          }
+          
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

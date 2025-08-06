@@ -86,7 +86,18 @@ class TaskServiceLocal {
       updatedAt: now,
     );
     
-    return await saveTask(task);
+    print('🔥 TaskServiceLocal: Creating task with id=$id');
+    print('🔥 Task title: $title');
+    print('🔥 Task dueDate: $dueDate');
+    print('🔥 Task projectId: $projectId');
+    
+    final savedTask = await saveTask(task);
+    
+    // Debug: Check total tasks after creation
+    final allTasks = await getTasks();
+    print('🔥 Total tasks after creation: ${allTasks.length}');
+    
+    return savedTask;
   }
 
   Future<Task> updateTask(String id, {
@@ -126,12 +137,33 @@ class TaskServiceLocal {
 
   Future<List<Task>> getTasksForDate(DateTime date) async {
     final tasks = await getTasks();
-    return tasks.where((task) {
+    
+    print('🔍 TaskServiceLocal: Getting tasks for date: ${date.year}-${date.month}-${date.day}');
+    print('🔍 Total tasks available: ${tasks.length}');
+    
+    final filteredTasks = tasks.where((task) {
       if (task.dueDate == null) return false;
-      return task.dueDate!.year == date.year &&
-             task.dueDate!.month == date.month &&
-             task.dueDate!.day == date.day;
+      
+      final matches = task.dueDate!.year == date.year &&
+                     task.dueDate!.month == date.month &&
+                     task.dueDate!.day == date.day;
+      
+      if (matches) {
+        print('🔍 ✅ Found matching task: ${task.title} (${task.dueDate})');
+      }
+      
+      return matches;
     }).toList();
+    
+    print('🔍 Filtered tasks for date: ${filteredTasks.length}');
+    
+    // Debug: Print all tasks with due dates
+    print('🔍 All tasks with due dates:');
+    for (final task in tasks.where((t) => t.dueDate != null)) {
+      print('🔍   - ${task.title}: ${task.dueDate} (${task.dueDate!.year}-${task.dueDate!.month}-${task.dueDate!.day})');
+    }
+    
+    return filteredTasks;
   }
 
   Future<List<Task>> getTasksByDateRange(DateTime start, DateTime end) async {
