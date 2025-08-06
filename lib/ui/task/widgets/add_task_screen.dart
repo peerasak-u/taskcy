@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../../domain/models/user.dart';
-import '../../../routing/route_utils.dart';
+import '../../shared/widgets/header_widget.dart';
 import '../cubit/add_task_cubit.dart';
 import '../cubit/add_task_state.dart';
 import 'team_member_selector.dart';
@@ -15,12 +14,41 @@ import 'board_status_selector.dart';
 class AddTaskScreen extends StatelessWidget {
   const AddTaskScreen({super.key});
 
+  static Future<void> show(BuildContext context) {
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return BlocProvider(
+          create: (_) => AddTaskCubit(),
+          child: const AddTaskScreen(),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.easeInOut;
+
+        var tween = Tween(begin: begin, end: end).chain(
+          CurveTween(curve: curve),
+        );
+        var offsetAnimation = animation.drive(tween);
+
+        return SlideTransition(
+          position: offsetAnimation,
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AddTaskCubit, AddTaskState>(
       listener: (context, state) {
         if (state is AddTaskSuccess) {
-          context.go(RouteUtils.homePath);
+          Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Task created successfully'),
@@ -38,37 +66,24 @@ class AddTaskScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: _buildAppBar(context),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: SafeArea(
+            child: HeaderWidget(
+              centerText: 'Add Task',
+              leftIcon: Icons.close,
+              onLeftTap: () => Navigator.of(context).pop(),
+            ),
+          ),
+        ),
         body: const SafeArea(
+          top: false,
           child: _AddTaskForm(),
         ),
       ),
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppColors.background,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.textPrimary,
-          size: 20,
-        ),
-        onPressed: () => context.go(RouteUtils.homePath),
-      ),
-      title: const Text(
-        'Add Task',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-      ),
-      centerTitle: true,
-    );
-  }
 }
 
 class _AddTaskForm extends StatefulWidget {
@@ -136,7 +151,7 @@ class _AddTaskFormState extends State<_AddTaskForm> {
             left: 24,
             right: 24,
             top: 24,
-            bottom: 24 + keyboardHeight,
+            bottom: MediaQuery.of(context).padding.bottom + 24 + keyboardHeight,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
