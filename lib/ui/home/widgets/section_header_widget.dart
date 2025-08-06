@@ -31,10 +31,18 @@ class SectionHeaderWidget extends StatelessWidget {
             ),
             const Spacer(),
             if (showArrow)
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: AppColors.textSecondary,
-                size: 16,
+              IconButton(
+                onPressed: onTap,
+                icon: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.textSecondary,
+                  size: 16,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 40,
+                ),
               ),
           ],
         ),

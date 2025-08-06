@@ -19,18 +19,17 @@ class HeaderWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onMenuTap,
-            child: Container(
+          IconButton(
+            onPressed: onMenuTap,
+            icon: const Icon(
+              Icons.menu,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+            style: IconButton.styleFrom(
               padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: const Icon(
-                Icons.menu,
-                color: AppColors.textPrimary,
-                size: 24,
               ),
             ),
           ),
@@ -46,18 +45,17 @@ class HeaderWidget extends StatelessWidget {
               ),
             ),
           ),
-          GestureDetector(
-            onTap: onNotificationTap,
-            child: Container(
+          IconButton(
+            onPressed: onNotificationTap,
+            icon: const Icon(
+              Icons.notifications_outlined,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+            style: IconButton.styleFrom(
               padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
-              ),
-              child: const Icon(
-                Icons.notifications_outlined,
-                color: AppColors.textPrimary,
-                size: 24,
               ),
             ),
           ),
