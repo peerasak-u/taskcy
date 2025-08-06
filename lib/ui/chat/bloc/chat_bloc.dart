@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/repositories/chat_repository.dart';
+import '../view_model/chats_view_model.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
@@ -28,7 +29,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       if (chats.isEmpty) {
         emit(const ChatEmpty());
       } else {
-        emit(ChatLoaded(chats: chats));
+        final chatsViewModel = ChatsViewModel.fromChats(chats);
+        emit(ChatLoaded(chatsData: chatsViewModel));
       }
     } catch (error) {
       emit(ChatError(message: error.toString()));
@@ -53,8 +55,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         perPage: 50,
       );
 
+      final searchResultsViewModel = ChatsViewModel.fromChats(searchResults);
       emit(ChatSearchLoaded(
-        searchResults: searchResults,
+        searchResults: searchResultsViewModel,
         query: event.query,
       ));
     } catch (error) {
@@ -73,7 +76,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       if (chats.isEmpty) {
         emit(const ChatEmpty());
       } else {
-        emit(ChatLoaded(chats: chats));
+        final chatsViewModel = ChatsViewModel.fromChats(chats);
+        emit(ChatLoaded(chatsData: chatsViewModel));
       }
     } catch (error) {
       emit(ChatError(message: error.toString()));

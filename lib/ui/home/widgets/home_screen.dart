@@ -14,12 +14,22 @@ import 'project_card_widget.dart';
 import 'section_header_widget.dart';
 import 'task_item_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
     context.read<HomeBloc>().add(const LoadHomeData());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentDate = DateFormat('EEEE, d').format(DateTime.now());
 
     return Scaffold(

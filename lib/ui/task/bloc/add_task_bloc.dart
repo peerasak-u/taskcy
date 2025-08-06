@@ -8,7 +8,7 @@ import '../../../domain/repositories/task_repository.dart';
 import '../../../domain/repositories/user_repository.dart';
 import '../view_model/add_task_form_model.dart';
 import 'add_task_event.dart';
-import '../cubit/add_task_state.dart';
+import 'add_task_state.dart';
 
 class AddTaskBloc extends Bloc<AddTaskEvent, AddTaskState> {
   final TaskRepository _taskRepository;

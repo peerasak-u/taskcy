@@ -8,7 +8,7 @@ import '../../shared/widgets/header_widget.dart';
 import '../../task_list/cubit/task_list_cubit.dart';
 import '../bloc/add_task_bloc.dart';
 import '../bloc/add_task_event.dart';
-import '../cubit/add_task_state.dart';
+import '../bloc/add_task_state.dart';
 import '../view_model/add_task_form_model.dart';
 import 'project_selector_widget.dart';
 import 'description_field_widget.dart';

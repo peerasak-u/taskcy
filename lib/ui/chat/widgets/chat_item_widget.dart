@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../domain/models/chat.dart';
+import '../view_model/chat_view_model.dart';
 import '../../core/theme/app_colors.dart';
 
 class ChatItemWidget extends StatelessWidget {
-  final Chat chat;
+  final ChatViewModel chat;
   final VoidCallback? onTap;
   final VoidCallback? onCameraTap;
 
@@ -29,7 +29,7 @@ class ChatItemWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    chat.name,
+                    chat.displayName,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -73,18 +73,18 @@ class ChatItemWidget extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16.0),
-        image: chat.avatarUrl != null
+        image: chat.hasAvatar && chat.avatarUrl != null
             ? DecorationImage(
                 image: NetworkImage(chat.avatarUrl!),
                 fit: BoxFit.cover,
               )
             : null,
-        color: chat.avatarUrl == null ? AppColors.primary : null,
+        color: !chat.hasAvatar ? chat.statusColor : null,
       ),
-      child: chat.avatarUrl == null
+      child: !chat.hasAvatar
           ? Center(
               child: Text(
-                chat.name.isNotEmpty ? chat.name[0].toUpperCase() : '',
+                chat.avatarFallback,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,

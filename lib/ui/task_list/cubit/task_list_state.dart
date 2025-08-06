@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/models/task.dart';
+import '../view_model/task_list_item_view_model.dart';
+import '../view_model/task_list_view_model.dart';
 
 enum TaskListViewMode { timeline, calendar }
 
@@ -16,52 +17,34 @@ class TaskListInitial extends TaskListState {}
 class TaskListLoading extends TaskListState {}
 
 class TaskListLoaded extends TaskListState {
-  final TaskListViewMode viewMode;
-  final DateTime selectedDate;
-  final String taskType;
-  final List<Task> tasksForSelectedDate;
-  final Map<DateTime, int> taskCountsByDate;
-  final int totalTasksToday;
-  final bool isLoading;
+  final TaskListViewModel taskListData;
 
   const TaskListLoaded({
-    required this.viewMode,
-    required this.selectedDate,
-    required this.taskType,
-    this.tasksForSelectedDate = const [],
-    this.taskCountsByDate = const {},
-    this.totalTasksToday = 0,
-    this.isLoading = false,
+    required this.taskListData,
   });
 
   TaskListLoaded copyWith({
     TaskListViewMode? viewMode,
     DateTime? selectedDate,
     String? taskType,
-    List<Task>? tasksForSelectedDate,
+    List<TaskListItemViewModel>? tasks,
     Map<DateTime, int>? taskCountsByDate,
     int? totalTasksToday,
     bool? isLoading,
   }) {
     return TaskListLoaded(
-      viewMode: viewMode ?? this.viewMode,
-      selectedDate: selectedDate ?? this.selectedDate,
-      taskType: taskType ?? this.taskType,
-      tasksForSelectedDate: tasksForSelectedDate ?? this.tasksForSelectedDate,
-      taskCountsByDate: taskCountsByDate ?? this.taskCountsByDate,
-      totalTasksToday: totalTasksToday ?? this.totalTasksToday,
-      isLoading: isLoading ?? this.isLoading,
+      taskListData: taskListData.copyWith(
+        viewMode: viewMode,
+        selectedDate: selectedDate,
+        taskType: taskType,
+        tasks: tasks,
+        taskCountsByDate: taskCountsByDate,
+        totalTasksToday: totalTasksToday,
+        isLoading: isLoading,
+      ),
     );
   }
 
   @override
-  List<Object?> get props => [
-        viewMode, 
-        selectedDate, 
-        taskType, 
-        tasksForSelectedDate, 
-        taskCountsByDate, 
-        totalTasksToday,
-        isLoading,
-      ];
+  List<Object?> get props => [taskListData];
 }

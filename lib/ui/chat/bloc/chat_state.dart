@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/models/chat.dart';
+import '../view_model/chats_view_model.dart';
 
 abstract class ChatState extends Equatable {
   const ChatState();
@@ -18,12 +18,12 @@ class ChatLoading extends ChatState {
 }
 
 class ChatLoaded extends ChatState {
-  final List<Chat> chats;
+  final ChatsViewModel chatsData;
 
-  const ChatLoaded({required this.chats});
+  const ChatLoaded({required this.chatsData});
 
   @override
-  List<Object?> get props => [chats];
+  List<Object?> get props => [chatsData];
 }
 
 class ChatEmpty extends ChatState {
@@ -44,7 +44,7 @@ class ChatSearchLoading extends ChatState {
 }
 
 class ChatSearchLoaded extends ChatState {
-  final List<Chat> searchResults;
+  final ChatsViewModel searchResults;
   final String query;
 
   const ChatSearchLoaded({

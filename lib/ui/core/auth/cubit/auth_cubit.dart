@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../domain/models/user.dart';
 import '../../../../domain/repositories/auth_repository.dart';
+import '../view_model/user_view_model.dart';
 
 part 'auth_state.dart';
 
@@ -29,7 +29,8 @@ class AuthCubit extends Cubit<AuthState> {
 
       final user = await _authRepository.getCurrentUser();
       if (user != null) {
-        emit(AuthAuthenticated(user: user));
+        final userViewModel = UserViewModel.fromUser(user);
+        emit(AuthAuthenticated(user: userViewModel));
       } else {
         emit(const AuthUnauthenticated());
       }
@@ -47,7 +48,8 @@ class AuthCubit extends Cubit<AuthState> {
         email: email,
         password: password,
       );
-      emit(AuthAuthenticated(user: user));
+      final userViewModel = UserViewModel.fromUser(user);
+      emit(AuthAuthenticated(user: userViewModel));
     } catch (e) {
       emit(const AuthUnauthenticated());
     }
@@ -64,7 +66,8 @@ class AuthCubit extends Cubit<AuthState> {
         password: password,
         fullName: fullName,
       );
-      emit(AuthAuthenticated(user: user));
+      final userViewModel = UserViewModel.fromUser(user);
+      emit(AuthAuthenticated(user: userViewModel));
     } catch (e) {
       emit(const AuthUnauthenticated());
     }

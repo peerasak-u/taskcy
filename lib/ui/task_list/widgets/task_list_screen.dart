@@ -44,7 +44,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   _buildDateStrip(state),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: state.isLoading ? 
+                    child: state.taskListData.isLoading ? 
                       const Center(
                         child: CircularProgressIndicator(
                           color: AppColors.primary,
@@ -66,7 +66,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget _buildHeader(TaskListLoaded state) {
-    final title = state.taskType == 'today' ? 'Today Task' : 'Monthly Task';
+    final title = state.taskListData.taskType == 'today' ? 'Today Task' : 'Monthly Task';
     
     return HeaderWidget(
       centerText: title,
@@ -78,14 +78,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget _buildDateSection(TaskListLoaded state) {
-    final formattedDate = DateFormat('MMMM, d').format(state.selectedDate);
-    final taskCount = state.taskType == 'today' 
-        ? state.totalTasksToday 
-        : state.tasksForSelectedDate.length;
+    final formattedDate = DateFormat('MMMM, d').format(state.taskListData.selectedDate);
+    final taskCount = state.taskListData.taskType == 'today' 
+        ? state.taskListData.totalTasksToday 
+        : state.taskListData.tasks.length;
     final taskText = taskCount == 1 ? 'task' : 'tasks';
-    final displayText = state.taskType == 'today' 
+    final displayText = state.taskListData.taskType == 'today' 
         ? '$taskCount $taskText today'
-        : '$taskCount $taskText on ${DateFormat('MMM d').format(state.selectedDate)}';
+        : '$taskCount $taskText on ${DateFormat('MMM d').format(state.taskListData.selectedDate)}';
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -124,7 +124,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                state.viewMode == TaskListViewMode.calendar 
+                state.taskListData.viewMode == TaskListViewMode.calendar 
                     ? Icons.view_agenda 
                     : Icons.calendar_month,
                 color: Colors.white,
@@ -142,7 +142,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: _DateStripWidget(
-        selectedDate: state.selectedDate,
+        selectedDate: state.taskListData.selectedDate,
         onDateSelected: (date) {
           context.read<TaskListCubit>().selectDate(date);
         },
@@ -151,15 +151,15 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   Widget _buildContent(TaskListLoaded state) {
-    if (state.viewMode == TaskListViewMode.timeline) {
+    if (state.taskListData.viewMode == TaskListViewMode.timeline) {
       return _TimelineViewWidget(
-        selectedDate: state.selectedDate,
-        tasks: state.tasksForSelectedDate,
+        selectedDate: state.taskListData.selectedDate,
+        tasks: state.taskListData.rawTasks,
       );
     } else {
       return _CalendarViewWidget(
-        selectedDate: state.selectedDate,
-        taskCountsByDate: state.taskCountsByDate,
+        selectedDate: state.taskListData.selectedDate,
+        taskCountsByDate: state.taskListData.taskCountsByDate,
         onDateSelected: (date) {
           context.read<TaskListCubit>().selectDate(date);
         },

@@ -20,7 +20,7 @@ class AuthUnauthenticated extends AuthState {
 }
 
 class AuthAuthenticated extends AuthState {
-  final User user;
+  final UserViewModel user;
 
   const AuthAuthenticated({required this.user});
 

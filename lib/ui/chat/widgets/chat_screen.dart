@@ -9,25 +9,35 @@ import '../bloc/chat_state.dart';
 import 'chat_item_widget.dart';
 import 'chat_search_field.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final TextEditingController searchController;
   
   const ChatScreen({super.key, required this.searchController});
 
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load chats when screen is built
+    context.read<ChatBloc>().add(const LoadChats());
+  }
+
   void _onSearchChanged(BuildContext context) {
-    final query = searchController.text.trim();
+    final query = widget.searchController.text.trim();
     context.read<ChatBloc>().add(SearchChats(query: query));
   }
 
   void _onSearchClear(BuildContext context) {
-    searchController.clear();
+    widget.searchController.clear();
     context.read<ChatBloc>().add(const LoadChats());
   }
 
   @override
   Widget build(BuildContext context) {
-    // Load chats when screen is built
-    context.read<ChatBloc>().add(const LoadChats());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -41,7 +51,7 @@ class ChatScreen extends StatelessWidget {
               },
             ),
             ChatSearchField(
-              controller: searchController,
+              controller: widget.searchController,
               onChanged: (value) => _onSearchChanged(context),
               onClear: () => _onSearchClear(context),
             ),
@@ -51,11 +61,11 @@ class ChatScreen extends StatelessWidget {
                   if (state is ChatLoading || state is ChatInitial) {
                     return _buildLoadingState();
                   } else if (state is ChatLoaded) {
-                    return _buildLoadedState(context, state.chats);
+                    return _buildLoadedState(context, state.chatsData.chats);
                   } else if (state is ChatSearchLoading) {
                     return _buildSearchLoadingState();
                   } else if (state is ChatSearchLoaded) {
-                    return _buildSearchResultsState(context, state.searchResults, state.query);
+                    return _buildSearchResultsState(context, state.searchResults.chats, state.query);
                   } else if (state is ChatEmpty) {
                     return _buildEmptyState(context);
                   } else if (state is ChatError) {

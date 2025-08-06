@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/task_repository.dart';
+import '../view_model/task_list_view_model.dart';
 import 'task_list_state.dart';
 
 class TaskListCubit extends Cubit<TaskListState> {
@@ -19,18 +20,23 @@ class TaskListCubit extends Cubit<TaskListState> {
       await _loadDataForDate(selectedDate, taskType, today);
     } catch (e) {
       // If data loading fails, still show the UI with empty state
-      emit(TaskListLoaded(
+      final viewModel = TaskListViewModel.fromTaskListState(
         viewMode: taskType == 'today' ? TaskListViewMode.timeline : TaskListViewMode.calendar,
         selectedDate: selectedDate,
         taskType: taskType,
-      ));
+        tasks: const [],
+        taskCountsByDate: const {},
+        totalTasksToday: 0,
+        isLoading: false,
+      );
+      emit(TaskListLoaded(taskListData: viewModel));
     }
   }
 
   Future<void> toggleViewMode() async {
     final currentState = state;
     if (currentState is TaskListLoaded) {
-      final newViewMode = currentState.viewMode == TaskListViewMode.timeline
+      final newViewMode = currentState.taskListData.viewMode == TaskListViewMode.timeline
           ? TaskListViewMode.calendar
           : TaskListViewMode.timeline;
       
@@ -38,7 +44,7 @@ class TaskListCubit extends Cubit<TaskListState> {
       
       // If switching to calendar view, load month data
       if (newViewMode == TaskListViewMode.calendar) {
-        await _loadMonthData(currentState.selectedDate);
+        await _loadMonthData(currentState.taskListData.selectedDate);
       }
       
       emit(currentState.copyWith(viewMode: newViewMode, isLoading: false));
@@ -48,7 +54,7 @@ class TaskListCubit extends Cubit<TaskListState> {
   Future<void> toggleTaskType() async {
     final currentState = state;
     if (currentState is TaskListLoaded) {
-      final newTaskType = currentState.taskType == 'today' ? 'monthly' : 'today';
+      final newTaskType = currentState.taskListData.taskType == 'today' ? 'monthly' : 'today';
       final newViewMode = newTaskType == 'today' 
           ? TaskListViewMode.timeline 
           : TaskListViewMode.calendar;
@@ -60,7 +66,7 @@ class TaskListCubit extends Cubit<TaskListState> {
       ));
 
       final today = DateTime.now();
-      await _loadDataForDate(currentState.selectedDate, newTaskType, today);
+      await _loadDataForDate(currentState.taskListData.selectedDate, newTaskType, today);
     }
   }
 
@@ -70,7 +76,7 @@ class TaskListCubit extends Cubit<TaskListState> {
       emit(currentState.copyWith(selectedDate: date, isLoading: true));
       
       final today = DateTime.now();
-      await _loadDataForDate(date, currentState.taskType, today);
+      await _loadDataForDate(date, currentState.taskListData.taskType, today);
     }
   }
 
@@ -78,7 +84,7 @@ class TaskListCubit extends Cubit<TaskListState> {
     final currentState = state;
     if (currentState is TaskListLoaded) {
       // Keep the same day if possible, otherwise use day 1
-      final currentDay = currentState.selectedDate.day;
+      final currentDay = currentState.taskListData.selectedDate.day;
       final lastDayOfNewMonth = DateTime(newMonth.year, newMonth.month + 1, 0).day;
       final newDay = currentDay <= lastDayOfNewMonth ? currentDay : 1;
       
@@ -87,7 +93,7 @@ class TaskListCubit extends Cubit<TaskListState> {
       emit(currentState.copyWith(selectedDate: newSelectedDate, isLoading: true));
       
       final today = DateTime.now();
-      await _loadDataForDate(newSelectedDate, currentState.taskType, today);
+      await _loadDataForDate(newSelectedDate, currentState.taskListData.taskType, today);
     }
   }
 
@@ -97,7 +103,7 @@ class TaskListCubit extends Cubit<TaskListState> {
       emit(currentState.copyWith(taskType: taskType, isLoading: true));
       
       final today = DateTime.now();
-      await _loadDataForDate(currentState.selectedDate, taskType, today);
+      await _loadDataForDate(currentState.taskListData.selectedDate, taskType, today);
     }
   }
 
@@ -118,28 +124,18 @@ class TaskListCubit extends Cubit<TaskListState> {
         taskCountsByDate = await _taskRepository.getTaskCountsByDateRange(firstDayOfMonth, lastDayOfMonth);
       }
 
-      final currentState = state;
-      if (currentState is TaskListLoaded) {
-        emit(currentState.copyWith(
-          selectedDate: selectedDate,
-          taskType: taskType,
-          tasksForSelectedDate: tasksForDate,
-          taskCountsByDate: taskCountsByDate,
-          totalTasksToday: totalTasksToday,
-          isLoading: false,
-          viewMode: taskType == 'today' ? TaskListViewMode.timeline : TaskListViewMode.calendar,
-        ));
-      } else {
-        emit(TaskListLoaded(
-          viewMode: taskType == 'today' ? TaskListViewMode.timeline : TaskListViewMode.calendar,
-          selectedDate: selectedDate,
-          taskType: taskType,
-          tasksForSelectedDate: tasksForDate,
-          taskCountsByDate: taskCountsByDate,
-          totalTasksToday: totalTasksToday,
-          isLoading: false,
-        ));
-      }
+      final viewModel = TaskListViewModel.fromTaskListState(
+        viewMode: taskType == 'today' ? TaskListViewMode.timeline : TaskListViewMode.calendar,
+        selectedDate: selectedDate,
+        taskType: taskType,
+        tasks: tasksForDate,
+        taskCountsByDate: taskCountsByDate,
+        totalTasksToday: totalTasksToday,
+        isLoading: false,
+      );
+      
+      // Simply emit the new ViewModel instead of complex copyWith logic
+      emit(TaskListLoaded(taskListData: viewModel));
     } catch (e) {
       final currentState = state;
       if (currentState is TaskListLoaded) {
@@ -167,12 +163,12 @@ class TaskListCubit extends Cubit<TaskListState> {
   Future<void> refresh() async {
     final currentState = state;
     if (currentState is TaskListLoaded) {
-      debugPrint('🔄 TaskListCubit: Refreshing task list for date: ${currentState.selectedDate}');
+      debugPrint('🔄 TaskListCubit: Refreshing task list for date: ${currentState.taskListData.selectedDate}');
       
       emit(currentState.copyWith(isLoading: true));
       
       final today = DateTime.now();
-      await _loadDataForDate(currentState.selectedDate, currentState.taskType, today);
+      await _loadDataForDate(currentState.taskListData.selectedDate, currentState.taskListData.taskType, today);
     }
   }
 }
