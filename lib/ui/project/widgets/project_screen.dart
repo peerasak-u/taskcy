@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/loading_state_widget.dart';
+import '../../shared/widgets/error_state_widget.dart';
+import '../../shared/widgets/empty_state_widget.dart';
 import '../bloc/projects_bloc.dart';
 import '../bloc/projects_event.dart';
 import '../bloc/projects_state.dart';
@@ -76,15 +79,22 @@ class _ProjectScreenState extends State<ProjectScreen> {
               child: BlocBuilder<ProjectsBloc, ProjectsState>(
                 builder: (context, state) {
                   if (state is ProjectsLoading) {
-                    return _buildLoadingState();
+                    return const LoadingStateWidget();
                   } else if (state is ProjectsLoaded) {
                     return _buildLoadedState(context, state.projectsData);
                   } else if (state is ProjectsEmpty) {
-                    return _buildEmptyState(context);
+                    return const EmptyStateWidget(
+                      icon: Icons.folder_outlined,
+                      title: 'No projects found',
+                      message: 'Try adjusting your search or filter',
+                    );
                   } else if (state is ProjectsError) {
-                    return _buildErrorState(context, state.message);
+                    return ErrorStateWidget(
+                      message: state.message,
+                      onRetry: () => context.read<ProjectsBloc>().add(const LoadProjectsRequested()),
+                    );
                   }
-                  return _buildLoadingState();
+                  return const LoadingStateWidget();
                 },
               ),
             ),
@@ -94,13 +104,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.primary,
-      ),
-    );
-  }
 
   Widget _buildLoadedState(BuildContext context, ProjectsViewModel projectsData) {
     return ListView.builder(
@@ -123,73 +126,4 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No projects found',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your search or filter',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context, String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.red[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Something went wrong',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.red[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              context.read<ProjectsBloc>().add(const LoadProjectsRequested());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
 }

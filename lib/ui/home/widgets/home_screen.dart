@@ -9,6 +9,9 @@ import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 import '../view_model/home_view_model.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/loading_state_widget.dart';
+import '../../shared/widgets/error_state_widget.dart';
+import '../../shared/widgets/empty_state_widget.dart';
 import 'motivational_banner_widget.dart';
 import 'project_card_widget.dart';
 import 'section_header_widget.dart';
@@ -48,15 +51,22 @@ class _HomeScreenState extends State<HomeScreen> {
               child: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoading || state is HomeInitial) {
-                    return _buildLoadingState();
+                    return const LoadingStateWidget();
                   } else if (state is HomeLoaded) {
                     return _buildLoadedState(context, state.homeData);
                   } else if (state is HomeEmpty) {
-                    return _buildEmptyState(context);
+                    return const EmptyStateWidget(
+                      icon: Icons.inbox_outlined,
+                      title: 'No projects or tasks yet',
+                      message: 'Create your first project to get started',
+                    );
                   } else if (state is HomeError) {
-                    return _buildErrorState(context, state.message);
+                    return ErrorStateWidget(
+                      message: state.message,
+                      onRetry: () => context.read<HomeBloc>().add(const LoadHomeData()),
+                    );
                   }
-                  return _buildLoadingState();
+                  return const LoadingStateWidget();
                 },
               ),
             ),
@@ -66,13 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.primary,
-      ),
-    );
-  }
 
   Widget _buildLoadedState(BuildContext context, HomeViewModel homeData) {
     return SingleChildScrollView(
@@ -126,73 +129,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No projects or tasks yet',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create your first project to get started',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context, String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.red[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Something went wrong',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.red[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              context.read<HomeBloc>().add(const LoadHomeData());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
 }

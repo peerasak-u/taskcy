@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../domain/models/task.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/loading_state_widget.dart';
 import '../../shared/widgets/user_avatar_stack_widget.dart';
 import '../cubit/task_list_cubit.dart';
 import '../cubit/task_list_state.dart';
@@ -45,20 +46,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   const SizedBox(height: 24),
                   Expanded(
                     child: state.taskListData.isLoading ? 
-                      const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      ) : _buildContent(state),
+                      const LoadingStateWidget() : _buildContent(state),
                   ),
                 ],
               );
             }
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            );
+            return const LoadingStateWidget();
           },
         ),
       ),

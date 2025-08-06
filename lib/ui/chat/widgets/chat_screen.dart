@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/loading_state_widget.dart';
+import '../../shared/widgets/error_state_widget.dart';
+import '../../shared/widgets/empty_state_widget.dart';
 import '../bloc/chat_bloc.dart';
 import '../bloc/chat_event.dart';
 import '../bloc/chat_state.dart';
@@ -59,19 +62,29 @@ class _ChatScreenState extends State<ChatScreen> {
               child: BlocBuilder<ChatBloc, ChatState>(
                 builder: (context, state) {
                   if (state is ChatLoading || state is ChatInitial) {
-                    return _buildLoadingState();
+                    return const LoadingStateWidget();
                   } else if (state is ChatLoaded) {
                     return _buildLoadedState(context, state.chatsData.chats);
                   } else if (state is ChatSearchLoading) {
-                    return _buildSearchLoadingState();
+                    return const LoadingStateWidget(
+                      message: 'Searching...',
+                      showMessage: true,
+                    );
                   } else if (state is ChatSearchLoaded) {
                     return _buildSearchResultsState(context, state.searchResults.chats, state.query);
                   } else if (state is ChatEmpty) {
-                    return _buildEmptyState(context);
+                    return const EmptyStateWidget(
+                      icon: Icons.chat_bubble_outline,
+                      title: 'No chats yet',
+                      message: 'Start a conversation with your team members',
+                    );
                   } else if (state is ChatError) {
-                    return _buildErrorState(context, state.message);
+                    return ErrorStateWidget(
+                      message: state.message,
+                      onRetry: () => context.read<ChatBloc>().add(const LoadChats()),
+                    );
                   }
-                  return _buildLoadingState();
+                  return const LoadingStateWidget();
                 },
               ),
             ),
@@ -81,39 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.primary,
-      ),
-    );
-  }
-
-  Widget _buildSearchLoadingState() {
-    return const Padding(
-      padding: EdgeInsets.all(20.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.primary,
-            ),
-          ),
-          SizedBox(width: 12),
-          Text(
-            'Searching...',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLoadedState(BuildContext context, List chats) {
     return RefreshIndicator(
@@ -141,31 +121,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildSearchResultsState(BuildContext context, List searchResults, String query) {
     if (searchResults.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No results found',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try searching with different keywords',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.search_off,
+        title: 'No results found',
+        message: 'Try searching with different keywords',
       );
     }
 
@@ -186,73 +145,4 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No chats yet',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a conversation with your team members',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context, String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.red[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Something went wrong',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.red[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              context.read<ChatBloc>().add(const LoadChats());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
 }

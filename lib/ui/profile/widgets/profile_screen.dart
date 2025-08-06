@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/loading_state_widget.dart';
+import '../../shared/widgets/error_state_widget.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -41,54 +43,14 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, ProfileState state) {
     if (state is ProfileLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-        ),
-      );
+      return const LoadingStateWidget();
     }
 
     if (state is ProfileError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Error loading profile',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ProfileBloc>().add(const RefreshProfileData());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.background,
-              ),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return ErrorStateWidget(
+        title: 'Error loading profile',
+        message: state.message,
+        onRetry: () => context.read<ProfileBloc>().add(const RefreshProfileData()),
       );
     }
 
@@ -147,10 +109,6 @@ class ProfileScreen extends StatelessWidget {
       context.read<ProfileBloc>().add(const LoadProfileData());
     });
 
-    return const Center(
-      child: CircularProgressIndicator(
-        color: AppColors.primary,
-      ),
-    );
+    return const LoadingStateWidget();
   }
 }

@@ -29,7 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -78,7 +78,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1A1D29),
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -86,9 +86,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               _isSignUp 
                                   ? 'Please Inter your Informatioin and\ncreate your account'
                                   : 'Please Inter your email address\nand password for Login',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[600],
+                                color: AppColors.textSecondary,
                                 height: 1.5,
                               ),
                             ),
@@ -142,9 +142,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     Text(
                       _isSignUp ? 'Signup With' : 'Signin with',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -156,9 +156,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       children: [
                         Text(
                           _isSignUp ? 'Have an Account? ' : 'Not Registrar Yet? ',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         TextButton(
@@ -204,7 +204,7 @@ class _AuthScreenState extends State<AuthScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.3),
+          color: AppColors.outline,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -215,14 +215,14 @@ class _AuthScreenState extends State<AuthScreen> {
         onChanged: (value) => setState(() {}),
         style: const TextStyle(
           fontSize: 16,
-          color: Colors.black87,
+          color: AppColors.textPrimary,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
             fontSize: 16,
-            color: hasContent ? Colors.black87 : Colors.grey[500],
+            color: hasContent ? AppColors.textPrimary : AppColors.textSecondary,
             fontWeight: hasContent ? FontWeight.w500 : FontWeight.w400,
           ),
           border: InputBorder.none,
@@ -268,7 +268,7 @@ class _AuthScreenState extends State<AuthScreen> {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.background,
           ),
         ),
       ),
@@ -305,7 +305,7 @@ class _AuthScreenState extends State<AuthScreen> {
       height: 60,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.3),
+          color: AppColors.outline,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -315,7 +315,7 @@ class _AuthScreenState extends State<AuthScreen> {
         icon: Icon(
           icon,
           size: 28,
-          color: Colors.black87,
+          color: AppColors.textPrimary,
         ),
       ),
     );
