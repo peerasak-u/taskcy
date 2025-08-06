@@ -73,6 +73,23 @@ class TaskListCubit extends Cubit<TaskListState> {
     }
   }
 
+  Future<void> navigateToMonth(DateTime newMonth) async {
+    final currentState = state;
+    if (currentState is TaskListLoaded) {
+      // Keep the same day if possible, otherwise use day 1
+      final currentDay = currentState.selectedDate.day;
+      final lastDayOfNewMonth = DateTime(newMonth.year, newMonth.month + 1, 0).day;
+      final newDay = currentDay <= lastDayOfNewMonth ? currentDay : 1;
+      
+      final newSelectedDate = DateTime(newMonth.year, newMonth.month, newDay);
+      
+      emit(currentState.copyWith(selectedDate: newSelectedDate, isLoading: true));
+      
+      final today = DateTime.now();
+      await _loadDataForDate(newSelectedDate, currentState.taskType, today);
+    }
+  }
+
   Future<void> updateTaskType(String taskType) async {
     final currentState = state;
     if (currentState is TaskListLoaded) {

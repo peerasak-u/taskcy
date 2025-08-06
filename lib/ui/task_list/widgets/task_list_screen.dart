@@ -162,6 +162,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
         onDateSelected: (date) {
           context.read<TaskListCubit>().selectDate(date);
         },
+        onMonthChanged: (month) {
+          context.read<TaskListCubit>().navigateToMonth(month);
+        },
       );
     }
   }
@@ -529,11 +532,13 @@ class _CalendarViewWidget extends StatelessWidget {
   final DateTime selectedDate;
   final Map<DateTime, int> taskCountsByDate;
   final Function(DateTime) onDateSelected;
+  final Function(DateTime) onMonthChanged;
 
   const _CalendarViewWidget({
     required this.selectedDate,
     required this.taskCountsByDate,
     required this.onDateSelected,
+    required this.onMonthChanged,
   });
 
   @override
@@ -555,7 +560,10 @@ class _CalendarViewWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              final previousMonth = DateTime(selectedDate.year, selectedDate.month - 1);
+              onMonthChanged(previousMonth);
+            },
             icon: const Icon(Icons.arrow_back_ios, size: 20),
           ),
           Text(
@@ -567,7 +575,10 @@ class _CalendarViewWidget extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              final nextMonth = DateTime(selectedDate.year, selectedDate.month + 1);
+              onMonthChanged(nextMonth);
+            },
             icon: const Icon(Icons.arrow_forward_ios, size: 20),
           ),
         ],
