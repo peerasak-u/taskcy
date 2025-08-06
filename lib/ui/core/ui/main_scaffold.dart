@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/app_bottom_bar.dart';
+import '../widgets/add_menu_modal.dart';
 
 class MainScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -52,22 +53,6 @@ class MainScaffold extends StatelessWidget {
   }
 
   void _showCreateTaskDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Create Task'),
-        content: const Text('Task creation dialog will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
+    AddMenuModal.show(context);
   }
 }
