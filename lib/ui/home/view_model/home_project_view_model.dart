@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../domain/models/project.dart';
 import '../../../domain/models/task.dart';
+import '../../../domain/models/user.dart';
 import '../../core/theme/app_colors.dart';
 
 class HomeProjectViewModel extends Equatable {
@@ -33,13 +34,13 @@ class HomeProjectViewModel extends Equatable {
     
     final backgroundColor = _getProjectColor(project.id);
     
-    final mockTeamAvatars = _getMockTeamAvatars(project.teamId);
+    final teamAvatars = _getTeamAvatars(project.team.members);
     
     return HomeProjectViewModel(
       id: project.id,
       title: project.name,
       subtitle: _getProjectSubtitle(project.name),
-      teamAvatars: mockTeamAvatars,
+      teamAvatars: teamAvatars,
       currentProgress: completedTasks,
       totalProgress: totalTasks > 0 ? totalTasks : 1,
       backgroundColor: backgroundColor,
@@ -76,17 +77,8 @@ class HomeProjectViewModel extends Equatable {
     return 'Project';
   }
 
-  static List<String> _getMockTeamAvatars(String teamId) {
-    switch (teamId) {
-      case 'team_1':
-        return ['', '', ''];
-      case 'team_2':
-        return ['', ''];
-      case 'team_3':
-        return ['', '', '', ''];
-      default:
-        return ['', ''];
-    }
+  static List<String> _getTeamAvatars(List<User> members) {
+    return members.map((user) => user.avatarUrl ?? '').where((url) => url.isNotEmpty).toList();
   }
 
   @override

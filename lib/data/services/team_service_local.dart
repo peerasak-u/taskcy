@@ -1,11 +1,14 @@
 import '../../domain/models/team.dart';
+import '../../domain/models/user.dart';
+import 'user_service_local.dart';
 
 class TeamServiceLocal {
   static List<Team>? _teams;
   static int _teamCounter = 3;
+  final UserServiceLocal _userService = UserServiceLocal();
 
   Future<List<Team>> getTeams() async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     return List<Team>.from(_teams!);
   }
 
@@ -26,7 +29,7 @@ class TeamServiceLocal {
   Future<List<Team>> getTeamsByMember(String memberId) async {
     final teams = await getTeams();
     return teams.where((team) => 
-      team.ownerId == memberId || team.memberIds.contains(memberId)
+      team.ownerId == memberId || team.members.any((member) => member.id == memberId)
     ).toList();
   }
 
@@ -46,7 +49,7 @@ class TeamServiceLocal {
   }
 
   Future<Team> saveTeam(Team team) async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     final existingIndex = _teams!.indexWhere((t) => t.id == team.id);
     
     if (existingIndex != -1) {
@@ -73,7 +76,7 @@ class TeamServiceLocal {
       description: description,
       privacy: privacy,
       ownerId: ownerId,
-      memberIds: const [],
+      members: const [],
       createdAt: now,
       updatedAt: now,
     );
@@ -86,7 +89,7 @@ class TeamServiceLocal {
     String? description,
     TeamPrivacy? privacy,
   }) async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     final teamIndex = _teams!.indexWhere((team) => team.id == id);
     
     if (teamIndex == -1) {
@@ -106,7 +109,7 @@ class TeamServiceLocal {
   }
 
   Future<Team> addMemberToTeam(String teamId, String memberId) async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     final teamIndex = _teams!.indexWhere((team) => team.id == teamId);
     
     if (teamIndex == -1) {
@@ -114,23 +117,28 @@ class TeamServiceLocal {
     }
     
     final team = _teams![teamIndex];
-    if (!team.memberIds.contains(memberId)) {
-      final updatedMemberIds = List<String>.from(team.memberIds)..add(memberId);
-      final updatedTeam = team.copyWith(
-        memberIds: updatedMemberIds,
-        updatedAt: DateTime.now(),
-      );
-      
-      _teams![teamIndex] = updatedTeam;
-      
-      return updatedTeam;
+    if (!team.members.any((member) => member.id == memberId)) {
+      final userToAdd = await _userService.getUserById(memberId);
+      if (userToAdd != null) {
+        final updatedMembers = List<User>.from(team.members)..add(userToAdd);
+        final updatedTeam = team.copyWith(
+          members: updatedMembers,
+          updatedAt: DateTime.now(),
+        );
+        
+        _teams![teamIndex] = updatedTeam;
+        
+        return updatedTeam;
+      } else {
+        throw Exception('User not found');
+      }
     }
     
     return team;
   }
 
   Future<Team> removeMemberFromTeam(String teamId, String memberId) async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     final teamIndex = _teams!.indexWhere((team) => team.id == teamId);
     
     if (teamIndex == -1) {
@@ -138,9 +146,9 @@ class TeamServiceLocal {
     }
     
     final team = _teams![teamIndex];
-    final updatedMemberIds = List<String>.from(team.memberIds)..remove(memberId);
+    final updatedMembers = team.members.where((member) => member.id != memberId).toList();
     final updatedTeam = team.copyWith(
-      memberIds: updatedMemberIds,
+      members: updatedMembers,
       updatedAt: DateTime.now(),
     );
     
@@ -150,7 +158,7 @@ class TeamServiceLocal {
   }
 
   Future<void> deleteTeam(String id) async {
-    _teams ??= _seedInitialTeams();
+    _teams ??= await _seedInitialTeams();
     _teams!.removeWhere((team) => team.id == id);
   }
 
@@ -159,7 +167,14 @@ class TeamServiceLocal {
     return 'team_$_teamCounter';
   }
 
-  List<Team> _seedInitialTeams() {
+  Future<List<Team>> _seedInitialTeams() async {
+    final allUsers = await _userService.getUsers();
+    
+    // Helper function to get users by IDs
+    List<User> getUsersByIds(List<String> userIds) {
+      return userIds.map((id) => allUsers.firstWhere((user) => user.id == id)).toList();
+    }
+    
     final now = DateTime.now();
     
     return [
@@ -169,7 +184,7 @@ class TeamServiceLocal {
         description: 'Flutter development team for AxenTech assignment project',
         privacy: TeamPrivacy.private,
         ownerId: 'user_peerasak',
-        memberIds: const ['user_claude'],
+        members: getUsersByIds(['user_claude']),
         createdAt: now.subtract(const Duration(days: 25)),
         updatedAt: now.subtract(const Duration(hours: 3)),
       ),
@@ -179,7 +194,7 @@ class TeamServiceLocal {
         description: 'Dedicated team for migrating Pygmy app from iOS to Flutter',
         privacy: TeamPrivacy.private,
         ownerId: 'user_peerasak',
-        memberIds: const ['user_claude'],
+        members: getUsersByIds(['user_claude']),
         createdAt: now.subtract(const Duration(days: 20)),
         updatedAt: now.subtract(const Duration(hours: 1)),
       ),
@@ -189,7 +204,7 @@ class TeamServiceLocal {
         description: 'Multi-disciplinary team for creative and marketing projects',
         privacy: TeamPrivacy.public,
         ownerId: 'user_sarah',
-        memberIds: const ['user_peerasak', 'user_claude', 'user_alex'],
+        members: getUsersByIds(['user_peerasak', 'user_claude', 'user_alex']),
         createdAt: now.subtract(const Duration(days: 40)),
         updatedAt: now.subtract(const Duration(minutes: 30)),
       ),

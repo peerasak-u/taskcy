@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'user.dart';
+
 enum TeamPrivacy { private, public, secret }
 
 class Team extends Equatable {
@@ -8,7 +10,7 @@ class Team extends Equatable {
   final String description;
   final TeamPrivacy privacy;
   final String ownerId;
-  final List<String> memberIds;
+  final List<User> members;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -18,7 +20,7 @@ class Team extends Equatable {
     required this.description,
     required this.privacy,
     required this.ownerId,
-    required this.memberIds,
+    required this.members,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,7 +31,7 @@ class Team extends Equatable {
     String? description,
     TeamPrivacy? privacy,
     String? ownerId,
-    List<String>? memberIds,
+    List<User>? members,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -39,7 +41,7 @@ class Team extends Equatable {
       description: description ?? this.description,
       privacy: privacy ?? this.privacy,
       ownerId: ownerId ?? this.ownerId,
-      memberIds: memberIds ?? this.memberIds,
+      members: members ?? this.members,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -52,7 +54,7 @@ class Team extends Equatable {
         description,
         privacy,
         ownerId,
-        memberIds,
+        members,
         createdAt,
         updatedAt,
       ];

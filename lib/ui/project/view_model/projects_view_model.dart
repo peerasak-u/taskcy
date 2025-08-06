@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/models/project.dart';
 import '../../../domain/models/task.dart';
+import '../../../domain/models/user.dart';
 import '../../core/theme/app_colors.dart';
 import '../bloc/projects_event.dart';
 
@@ -71,7 +72,7 @@ class ProjectItemViewModel extends Equatable {
       title: '${project.name} ${_getProjectEmoji(project.name)}',
       category: _getCategoryFromDescription(project.description),
       emoji: _getProjectEmoji(project.name),
-      teamAvatars: _getMockTeamAvatars(project.teamId),
+      teamAvatars: _getTeamAvatars(project.team.members),
       progress: '$completed/$total',
       progressPercentage: percentage,
       progressColor: _getProgressColor(percentage),
@@ -116,12 +117,8 @@ class ProjectItemViewModel extends Equatable {
     }
   }
 
-  static List<String> _getMockTeamAvatars(String teamId) {
-    // Mock team avatar URLs - replace with actual user avatar URLs
-    return [
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-    ];
+  static List<String> _getTeamAvatars(List<User> members) {
+    return members.map((user) => user.avatarUrl ?? '').where((url) => url.isNotEmpty).toList();
   }
 
   static Color _getProgressColor(double percentage) {

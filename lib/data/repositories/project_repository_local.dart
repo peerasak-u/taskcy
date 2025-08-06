@@ -25,7 +25,7 @@ class ProjectRepositoryLocal implements ProjectRepository {
     
     // Apply team filter
     if (teamId != null) {
-      projects = projects.where((project) => project.teamId == teamId).toList();
+      projects = projects.where((project) => project.team.id == teamId).toList();
     }
     
     // Apply pagination

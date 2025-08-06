@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
 
+import 'team.dart';
+
 class Project extends Equatable {
   final String id;
   final String name;
   final String description;
-  final String teamId;
+  final Team team;
   final String ownerId;
   final DateTime? dueDate;
   final DateTime createdAt;
@@ -14,7 +16,7 @@ class Project extends Equatable {
     required this.id,
     required this.name,
     required this.description,
-    required this.teamId,
+    required this.team,
     required this.ownerId,
     this.dueDate,
     required this.createdAt,
@@ -25,7 +27,7 @@ class Project extends Equatable {
     String? id,
     String? name,
     String? description,
-    String? teamId,
+    Team? team,
     String? ownerId,
     DateTime? dueDate,
     DateTime? createdAt,
@@ -35,7 +37,7 @@ class Project extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      teamId: teamId ?? this.teamId,
+      team: team ?? this.team,
       ownerId: ownerId ?? this.ownerId,
       dueDate: dueDate ?? this.dueDate,
       createdAt: createdAt ?? this.createdAt,
@@ -53,7 +55,7 @@ class Project extends Equatable {
         id,
         name,
         description,
-        teamId,
+        team,
         ownerId,
         dueDate,
         createdAt,

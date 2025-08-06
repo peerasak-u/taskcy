@@ -1,11 +1,13 @@
 import '../../domain/models/project.dart';
+import 'team_service_local.dart';
 
 class ProjectServiceLocal {
   static List<Project>? _projects;
   static int _projectCounter = 4;
+  final TeamServiceLocal _teamService = TeamServiceLocal();
 
   Future<List<Project>> getProjects() async {
-    _projects ??= _seedInitialProjects();
+    _projects ??= await _seedInitialProjects();
     return List<Project>.from(_projects!);
   }
 
@@ -20,7 +22,7 @@ class ProjectServiceLocal {
 
   Future<List<Project>> getProjectsByTeam(String teamId) async {
     final projects = await getProjects();
-    return projects.where((project) => project.teamId == teamId).toList();
+    return projects.where((project) => project.team.id == teamId).toList();
   }
 
   Future<List<Project>> getProjectsByOwner(String ownerId) async {
@@ -48,7 +50,7 @@ class ProjectServiceLocal {
   }
 
   Future<Project> saveProject(Project project) async {
-    _projects ??= _seedInitialProjects();
+    _projects ??= await _seedInitialProjects();
     final existingIndex = _projects!.indexWhere((p) => p.id == project.id);
 
     if (existingIndex != -1) {
@@ -67,6 +69,11 @@ class ProjectServiceLocal {
     required String ownerId,
     DateTime? dueDate,
   }) async {
+    final team = await _teamService.getTeamById(teamId);
+    if (team == null) {
+      throw Exception('Team not found');
+    }
+
     final id = _generateId();
     final now = DateTime.now();
 
@@ -74,7 +81,7 @@ class ProjectServiceLocal {
       id: id,
       name: name,
       description: description,
-      teamId: teamId,
+      team: team,
       ownerId: ownerId,
       dueDate: dueDate,
       createdAt: now,
@@ -88,18 +95,34 @@ class ProjectServiceLocal {
     String id, {
     String? name,
     String? description,
+    String? teamId,
+    String? ownerId,
     DateTime? dueDate,
   }) async {
-    _projects ??= _seedInitialProjects();
+    _projects ??= await _seedInitialProjects();
     final projectIndex = _projects!.indexWhere((project) => project.id == id);
 
     if (projectIndex == -1) {
       throw Exception('Project not found');
     }
 
-    final updatedProject = _projects![projectIndex].copyWith(
+    final currentProject = _projects![projectIndex];
+    var updatedTeam = currentProject.team;
+
+    // If teamId is provided, fetch the new team
+    if (teamId != null && teamId != currentProject.team.id) {
+      final newTeam = await _teamService.getTeamById(teamId);
+      if (newTeam == null) {
+        throw Exception('Team not found');
+      }
+      updatedTeam = newTeam;
+    }
+
+    final updatedProject = currentProject.copyWith(
       name: name,
       description: description,
+      team: updatedTeam,
+      ownerId: ownerId,
       dueDate: dueDate,
       updatedAt: DateTime.now(),
     );
@@ -110,7 +133,7 @@ class ProjectServiceLocal {
   }
 
   Future<void> deleteProject(String id) async {
-    _projects ??= _seedInitialProjects();
+    _projects ??= await _seedInitialProjects();
     _projects!.removeWhere((project) => project.id == id);
   }
 
@@ -119,7 +142,15 @@ class ProjectServiceLocal {
     return 'project_$_projectCounter';
   }
 
-  List<Project> _seedInitialProjects() {
+  Future<List<Project>> _seedInitialProjects() async {
+    // Get teams with populated members
+    final teams = await _teamService.getTeams();
+    
+    // Helper function to get team by ID
+    getTeamById(String teamId) {
+      return teams.firstWhere((team) => team.id == teamId);
+    }
+
     final now = DateTime.now();
 
     return [
@@ -128,7 +159,7 @@ class ProjectServiceLocal {
         name: 'AxenTech Assignment',
         description:
             'Flutter learning project focusing on foundational development skills and modern mobile app architecture',
-        teamId: 'team_axentech',
+        team: getTeamById('team_axentech'),
         ownerId: 'user_peerasak',
         dueDate: now.add(const Duration(days: 21)), // 3 weeks from now
         createdAt: now.subtract(const Duration(days: 25)),
@@ -139,7 +170,7 @@ class ProjectServiceLocal {
         name: 'Migrate Pygmy to Flutter',
         description:
             'Complex migration project from iOS SwiftUI to Flutter, including Vision Framework integration and database migration',
-        teamId: 'team_pygmy',
+        team: getTeamById('team_pygmy'),
         ownerId: 'user_peerasak',
         dueDate: now.add(const Duration(days: 90)), // 3 months from now
         createdAt: now.subtract(const Duration(days: 20)),
@@ -150,7 +181,7 @@ class ProjectServiceLocal {
         name: 'Brand Identity Campaign',
         description:
             'Comprehensive marketing campaign including brand research, logo design, style guide creation, and social media strategy',
-        teamId: 'team_creativeworks',
+        team: getTeamById('team_creativeworks'),
         ownerId: 'user_sarah',
         dueDate: now.add(const Duration(days: 14)), // 2 weeks from now
         createdAt: now.subtract(const Duration(days: 55)),
@@ -161,7 +192,7 @@ class ProjectServiceLocal {
         name: 'Personal Productivity Tools',
         description:
             'Small utility applications for personal productivity and workflow enhancement',
-        teamId: 'team_axentech',
+        team: getTeamById('team_axentech'),
         ownerId: 'user_peerasak',
         dueDate: now.add(const Duration(days: 42)), // 6 weeks from now
         createdAt: now.subtract(const Duration(days: 2)),
