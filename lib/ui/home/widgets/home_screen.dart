@@ -14,22 +14,12 @@ import 'project_card_widget.dart';
 import 'section_header_widget.dart';
 import 'task_item_widget.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<HomeBloc>().add(const LoadHomeData());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    context.read<HomeBloc>().add(const LoadHomeData());
     final currentDate = DateFormat('EEEE, d').format(DateTime.now());
 
     return Scaffold(
@@ -50,11 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (state is HomeLoading || state is HomeInitial) {
                     return _buildLoadingState();
                   } else if (state is HomeLoaded) {
-                    return _buildLoadedState(state.homeData);
+                    return _buildLoadedState(context, state.homeData);
                   } else if (state is HomeEmpty) {
-                    return _buildEmptyState();
+                    return _buildEmptyState(context);
                   } else if (state is HomeError) {
-                    return _buildErrorState(state.message);
+                    return _buildErrorState(context, state.message);
                   }
                   return _buildLoadingState();
                 },
@@ -74,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLoadedState(HomeViewModel homeData) {
+  Widget _buildLoadedState(BuildContext context, HomeViewModel homeData) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -155,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
