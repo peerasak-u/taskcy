@@ -87,9 +87,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           // Refresh task list if available
           try {
             context.read<TaskListCubit>().refresh();
-            print('🔄 AddTaskScreen: Triggered task list refresh after task creation');
+            debugPrint('🔄 AddTaskScreen: Triggered task list refresh after task creation');
           } catch (e) {
-            print('⚠️ AddTaskScreen: TaskListCubit not found, refresh not triggered');
+            debugPrint('⚠️ AddTaskScreen: TaskListCubit not found, refresh not triggered');
           }
           
           Navigator.of(context).pop();

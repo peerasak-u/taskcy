@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../domain/models/task.dart';
 
 class TaskServiceLocal {
@@ -86,16 +87,16 @@ class TaskServiceLocal {
       updatedAt: now,
     );
     
-    print('🔥 TaskServiceLocal: Creating task with id=$id');
-    print('🔥 Task title: $title');
-    print('🔥 Task dueDate: $dueDate');
-    print('🔥 Task projectId: $projectId');
+    debugPrint('🔥 TaskServiceLocal: Creating task with id=$id');
+    debugPrint('🔥 Task title: $title');
+    debugPrint('🔥 Task dueDate: $dueDate');
+    debugPrint('🔥 Task projectId: $projectId');
     
     final savedTask = await saveTask(task);
     
     // Debug: Check total tasks after creation
     final allTasks = await getTasks();
-    print('🔥 Total tasks after creation: ${allTasks.length}');
+    debugPrint('🔥 Total tasks after creation: ${allTasks.length}');
     
     return savedTask;
   }
@@ -138,8 +139,8 @@ class TaskServiceLocal {
   Future<List<Task>> getTasksForDate(DateTime date) async {
     final tasks = await getTasks();
     
-    print('🔍 TaskServiceLocal: Getting tasks for date: ${date.year}-${date.month}-${date.day}');
-    print('🔍 Total tasks available: ${tasks.length}');
+    debugPrint('🔍 TaskServiceLocal: Getting tasks for date: ${date.year}-${date.month}-${date.day}');
+    debugPrint('🔍 Total tasks available: ${tasks.length}');
     
     final filteredTasks = tasks.where((task) {
       if (task.dueDate == null) return false;
@@ -149,18 +150,18 @@ class TaskServiceLocal {
                      task.dueDate!.day == date.day;
       
       if (matches) {
-        print('🔍 ✅ Found matching task: ${task.title} (${task.dueDate})');
+        debugPrint('🔍 ✅ Found matching task: ${task.title} (${task.dueDate})');
       }
       
       return matches;
     }).toList();
     
-    print('🔍 Filtered tasks for date: ${filteredTasks.length}');
+    debugPrint('🔍 Filtered tasks for date: ${filteredTasks.length}');
     
     // Debug: Print all tasks with due dates
-    print('🔍 All tasks with due dates:');
+    debugPrint('🔍 All tasks with due dates:');
     for (final task in tasks.where((t) => t.dueDate != null)) {
-      print('🔍   - ${task.title}: ${task.dueDate} (${task.dueDate!.year}-${task.dueDate!.month}-${task.dueDate!.day})');
+      debugPrint('🔍   - ${task.title}: ${task.dueDate} (${task.dueDate!.year}-${task.dueDate!.month}-${task.dueDate!.day})');
     }
     
     return filteredTasks;

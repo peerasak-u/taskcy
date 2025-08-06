@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/task_repository.dart';
 import 'task_list_state.dart';
@@ -166,7 +167,7 @@ class TaskListCubit extends Cubit<TaskListState> {
   Future<void> refresh() async {
     final currentState = state;
     if (currentState is TaskListLoaded) {
-      print('🔄 TaskListCubit: Refreshing task list for date: ${currentState.selectedDate}');
+      debugPrint('🔄 TaskListCubit: Refreshing task list for date: ${currentState.selectedDate}');
       
       emit(currentState.copyWith(isLoading: true));
       
