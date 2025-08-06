@@ -124,6 +124,39 @@ class TaskServiceLocal {
     _tasks!.removeWhere((task) => task.id == id);
   }
 
+  Future<List<Task>> getTasksForDate(DateTime date) async {
+    final tasks = await getTasks();
+    return tasks.where((task) {
+      if (task.dueDate == null) return false;
+      return task.dueDate!.year == date.year &&
+             task.dueDate!.month == date.month &&
+             task.dueDate!.day == date.day;
+    }).toList();
+  }
+
+  Future<List<Task>> getTasksByDateRange(DateTime start, DateTime end) async {
+    final tasks = await getTasks();
+    return tasks.where((task) {
+      if (task.dueDate == null) return false;
+      return task.dueDate!.isAfter(start.subtract(const Duration(days: 1))) &&
+             task.dueDate!.isBefore(end.add(const Duration(days: 1)));
+    }).toList();
+  }
+
+  Future<Map<DateTime, int>> getTaskCountsByDateRange(DateTime start, DateTime end) async {
+    final tasks = await getTasksByDateRange(start, end);
+    final Map<DateTime, int> counts = {};
+    
+    for (final task in tasks) {
+      if (task.dueDate != null) {
+        final date = DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day);
+        counts[date] = (counts[date] ?? 0) + 1;
+      }
+    }
+    
+    return counts;
+  }
+
   String _generateId() {
     _taskCounter++;
     return 'task_$_taskCounter';
@@ -154,7 +187,7 @@ class TaskServiceLocal {
         priority: TaskPriority.high,
         projectId: 'project_axentech',
         assigneeId: 'user_peerasak',
-        dueDate: now.add(const Duration(days: 1)), // Due tomorrow
+        dueDate: DateTime(now.year, now.month, now.day, 9, 0), // Today at 9:00 AM
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(hours: 2)),
       ),
@@ -178,7 +211,7 @@ class TaskServiceLocal {
         priority: TaskPriority.high,
         projectId: 'project_axentech',
         assigneeId: 'user_peerasak',
-        dueDate: now.add(const Duration(days: 6)),
+        dueDate: DateTime(now.year, now.month, now.day, 12, 0), // Today at 12:00 PM
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(minutes: 30)),
       ),
@@ -326,7 +359,7 @@ class TaskServiceLocal {
         priority: TaskPriority.urgent,
         projectId: 'project_brand_identity',
         assigneeId: 'user_sarah',
-        dueDate: now.add(const Duration(days: 4)), // Aug 10
+        dueDate: DateTime(now.year, now.month, now.day, 15, 0), // Today at 3:00 PM
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(minutes: 20)),
       ),
@@ -377,6 +410,46 @@ class TaskServiceLocal {
         projectId: 'project_personal_tools',
         assigneeId: 'user_peerasak',
         dueDate: now.add(const Duration(days: 26)), // Sep 1
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+
+      // Timeline demo tasks with overlapping times to showcase the new system
+      Task(
+        id: 'task_demo_wireframe',
+        title: 'Wireframe elements',
+        description: 'Create wireframe elements for the new task list feature',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.high,
+        projectId: 'project_axentech',
+        assigneeId: 'user_peerasak',
+        dueDate: DateTime(now.year, now.month, now.day, 10, 0), // 10:00 AM - 11:30 AM (1.5 hours)
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      
+      Task(
+        id: 'task_demo_mobile_design',
+        title: 'Mobile app Design',
+        description: 'Design mobile interface and user experience flows',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_axentech',
+        assigneeId: 'user_claude',
+        dueDate: DateTime(now.year, now.month, now.day, 13, 0), // 1:00 PM - 2:00 PM (1 hour)
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+      
+      Task(
+        id: 'task_demo_team_call',
+        title: 'Design Team call',
+        description: 'Weekly design review and planning meeting with the team',
+        status: TaskStatus.todo,
+        priority: TaskPriority.urgent,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_alex',
+        dueDate: DateTime(now.year, now.month, now.day, 16, 0), // 4:00 PM - 4:30 PM (30 min meeting)
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),

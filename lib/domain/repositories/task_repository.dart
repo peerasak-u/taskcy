@@ -37,4 +37,10 @@ abstract class TaskRepository {
   Future<List<Task>> getTasksByProject(String projectId);
 
   Future<List<Task>> getTasksByAssignee(String assigneeId);
+
+  Future<List<Task>> getTasksForDate(DateTime date);
+
+  Future<List<Task>> getTasksByDateRange(DateTime start, DateTime end);
+
+  Future<Map<DateTime, int>> getTaskCountsByDateRange(DateTime start, DateTime end);
 }

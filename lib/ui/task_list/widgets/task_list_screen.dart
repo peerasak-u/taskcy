@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../domain/models/task.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
 import '../cubit/task_list_cubit.dart';
@@ -42,7 +43,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   _buildDateStrip(state),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: _buildContent(state),
+                    child: state.isLoading ? 
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ) : _buildContent(state),
                   ),
                 ],
               );
@@ -72,6 +78,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   Widget _buildDateSection(TaskListLoaded state) {
     final formattedDate = DateFormat('MMMM, d').format(state.selectedDate);
+    final taskCount = state.taskType == 'today' 
+        ? state.totalTasksToday 
+        : state.tasksForSelectedDate.length;
+    final taskText = taskCount == 1 ? 'task' : 'tasks';
+    final displayText = state.taskType == 'today' 
+        ? '$taskCount $taskText today'
+        : '$taskCount $taskText on ${DateFormat('MMM d').format(state.selectedDate)}';
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -90,9 +103,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '15 task today',
-                  style: TextStyle(
+                Text(
+                  displayText,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -138,10 +151,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   Widget _buildContent(TaskListLoaded state) {
     if (state.viewMode == TaskListViewMode.timeline) {
-      return _TimelineViewWidget(selectedDate: state.selectedDate);
+      return _TimelineViewWidget(
+        selectedDate: state.selectedDate,
+        tasks: state.tasksForSelectedDate,
+      );
     } else {
       return _CalendarViewWidget(
         selectedDate: state.selectedDate,
+        taskCountsByDate: state.taskCountsByDate,
         onDateSelected: (date) {
           context.read<TaskListCubit>().selectDate(date);
         },
@@ -213,86 +230,296 @@ class _DateStripWidget extends StatelessWidget {
 
 class _TimelineViewWidget extends StatelessWidget {
   final DateTime selectedDate;
+  final List<Task> tasks;
+  
+  static const double hourHeight = 75.0;
+  static const double timeColumnWidth = 60.0;
 
-  const _TimelineViewWidget({required this.selectedDate});
+  const _TimelineViewWidget({
+    required this.selectedDate,
+    required this.tasks,
+  });
+
+  List<_TimelineTask> _buildTimelineTasks() {
+    final timelineTasks = <_TimelineTask>[];
+    
+    for (final task in tasks) {
+      if (task.dueDate == null) continue;
+      
+      final startTime = task.dueDate!;
+      // Default 1 hour duration, but can be customized per task
+      final endTime = _getTaskEndTime(task);
+      
+      timelineTasks.add(_TimelineTask(
+        task: task,
+        startTime: startTime,
+        endTime: endTime,
+      ));
+    }
+    
+    return timelineTasks;
+  }
+  
+  DateTime _getTaskEndTime(Task task) {
+    if (task.dueDate == null) return DateTime.now();
+    
+    // Custom durations based on task type
+    Duration duration;
+    if (task.title.toLowerCase().contains('call') || 
+        task.title.toLowerCase().contains('meeting')) {
+      duration = const Duration(minutes: 30); // 30min meetings
+    } else if (task.title.toLowerCase().contains('wireframe')) {
+      duration = const Duration(hours: 1, minutes: 30); // 1.5 hours
+    } else {
+      duration = const Duration(hours: 1); // Default 1 hour
+    }
+    
+    return task.dueDate!.add(duration);
+  }
+
+  double _calculateTaskTop(DateTime startTime) {
+    final startHour = startTime.hour;
+    final startMinute = startTime.minute;
+    final hourOffset = startHour - 8; // 8am is the start
+    return (hourOffset * hourHeight) + (startMinute / 60.0 * hourHeight);
+  }
+
+  double _calculateTaskHeight(DateTime startTime, DateTime endTime) {
+    final durationInMinutes = endTime.difference(startTime).inMinutes;
+    final calculatedHeight = (durationInMinutes / 60.0) * hourHeight;
+    // Minimum height should be equal to one hour slot (75px)
+    return calculatedHeight < hourHeight ? hourHeight : calculatedHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    final timelineTasks = _buildTimelineTasks();
+    final totalHeight = (18 - 8 + 1) * hourHeight; // 8am to 6pm
+    
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      children: const [
-        _TimeSlot(time: '10 am', hasTask: true, taskTitle: 'Wareframe elements'),
-        _TimeSlot(time: '11 am', hasTask: false),
-        _TimeSlot(time: '12 pm', hasTask: true, taskTitle: 'Mobile app Design'),
-        _TimeSlot(time: '01 pm', hasTask: true, taskTitle: 'Design Team call'),
-        _TimeSlot(time: '02 pm', hasTask: false),
+      child: SizedBox(
+        height: totalHeight,
+        child: Stack(
+          children: [
+            // Time slots background
+            ...List.generate(11, (index) {
+              final hour = 8 + index;
+              final top = index * hourHeight;
+              return Positioned(
+                left: 0,
+                top: top,
+                right: 0,
+                height: hourHeight,
+                child: _TimeSlotBackground(
+                  hour: hour,
+                  isLast: index == 10,
+                ),
+              );
+            }),
+            
+            // Task cards positioned absolutely
+            ...timelineTasks.map((timelineTask) {
+              final top = _calculateTaskTop(timelineTask.startTime);
+              final height = _calculateTaskHeight(timelineTask.startTime, timelineTask.endTime);
+              
+              return Positioned(
+                left: timeColumnWidth + 16,
+                top: top,
+                right: 0,
+                height: height,
+                child: _AbsoluteTimelineTaskCard(
+                  timelineTask: timelineTask,
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TimelineTask {
+  final Task task;
+  final DateTime startTime;
+  final DateTime endTime;
+
+  _TimelineTask({
+    required this.task,
+    required this.startTime,
+    required this.endTime,
+  });
+}
+
+class _TimeSlotBackground extends StatelessWidget {
+  final int hour;
+  final bool isLast;
+
+  const _TimeSlotBackground({
+    required this.hour,
+    this.isLast = false,
+  });
+
+  String _formatHour(int hour) {
+    if (hour == 12) return '12 pm';
+    if (hour < 12) return '${hour.toString().padLeft(2, '0')} am';
+    return '${(hour - 12).toString().padLeft(2, '0')} pm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: _TimelineViewWidget.timeColumnWidth,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    _formatHour(hour),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        ),
+        // Separator line
+        if (!isLast)
+          Container(
+            margin: const EdgeInsets.only(left: _TimelineViewWidget.timeColumnWidth + 16),
+            height: 1,
+            color: AppColors.textSecondary.withValues(alpha: 0.1),
+          ),
       ],
     );
   }
 }
 
-class _TimeSlot extends StatelessWidget {
-  final String time;
-  final bool hasTask;
-  final String? taskTitle;
+class _AbsoluteTimelineTaskCard extends StatelessWidget {
+  final _TimelineTask timelineTask;
 
-  const _TimeSlot({
-    required this.time,
-    required this.hasTask,
-    this.taskTitle,
+  const _AbsoluteTimelineTaskCard({
+    required this.timelineTask,
   });
+
+  Color get _cardColor {
+    switch (timelineTask.task.priority) {
+      case TaskPriority.urgent:
+        return AppColors.orange; // Orange for urgent
+      case TaskPriority.high:
+        return AppColors.blue; // Blue for high
+      case TaskPriority.medium:
+        return AppColors.green; // Green for medium
+      case TaskPriority.low:
+        return AppColors.blue.withValues(alpha: 0.7); // Light blue for low
+    }
+  }
+
+  String get _taskEmoji {
+    final title = timelineTask.task.title.toLowerCase();
+    if (title.contains('wireframe') || title.contains('design')) {
+      return '🔥';
+    } else if (title.contains('call') || title.contains('meeting')) {
+      return '📞';
+    } else if (title.contains('research') || title.contains('analysis')) {
+      return '🔍';
+    } else if (title.contains('develop') || title.contains('implement')) {
+      return '💻';
+    } else {
+      return '⭐';
+    }
+  }
+
+  String get _timeRange {
+    final startTime = DateFormat('h:mma').format(timelineTask.startTime).toLowerCase();
+    final endTime = DateFormat('h:mma').format(timelineTask.endTime).toLowerCase();
+    return '$startTime - $endTime';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Row(
+    return Container(
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 60,
-            child: Text(
-              time,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
+          Text(
+            '${timelineTask.task.title} $_taskEmoji',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          Expanded(
-            child: hasTask && taskTitle != null
-                ? Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.blue,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          taskTitle!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '10am - 11am',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox(height: 60),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Placeholder avatars
+              Row(
+                children: [
+                  _buildAvatar('P', Colors.purple.shade300),
+                  const SizedBox(width: 4),
+                  _buildAvatar('C', Colors.green.shade300),
+                  if (timelineTask.task.priority == TaskPriority.urgent) ...[
+                    const SizedBox(width: 4),
+                    _buildAvatar('S', Colors.pink.shade300),
+                  ],
+                ],
+              ),
+              Flexible(
+                child: Text(
+                  _timeRange,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String initial, Color color) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
@@ -300,10 +527,12 @@ class _TimeSlot extends StatelessWidget {
 
 class _CalendarViewWidget extends StatelessWidget {
   final DateTime selectedDate;
+  final Map<DateTime, int> taskCountsByDate;
   final Function(DateTime) onDateSelected;
 
   const _CalendarViewWidget({
     required this.selectedDate,
+    required this.taskCountsByDate,
     required this.onDateSelected,
   });
 
@@ -401,7 +630,9 @@ class _CalendarViewWidget extends StatelessWidget {
         final date = DateTime(selectedDate.year, selectedDate.month, day);
         final isSelected = DateUtils.isSameDay(date, selectedDate);
         final isToday = DateUtils.isSameDay(date, now);
-        final hasTask = day == 3 || day == 12 || day == 27; // Mock task data
+        final dateKey = DateTime(date.year, date.month, date.day);
+        final taskCount = taskCountsByDate[dateKey] ?? 0;
+        final hasTask = taskCount > 0;
         
         return GestureDetector(
           onTap: () => onDateSelected(date),

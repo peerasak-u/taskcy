@@ -135,4 +135,28 @@ class TaskRepositoryLocal implements TaskRepository {
     
     return await _taskService.getTasksByAssignee(assigneeId);
   }
+
+  @override
+  Future<List<Task>> getTasksForDate(DateTime date) async {
+    // Simulate API call
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    return await _taskService.getTasksForDate(date);
+  }
+
+  @override
+  Future<List<Task>> getTasksByDateRange(DateTime start, DateTime end) async {
+    // Simulate API call
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    return await _taskService.getTasksByDateRange(start, end);
+  }
+
+  @override
+  Future<Map<DateTime, int>> getTaskCountsByDateRange(DateTime start, DateTime end) async {
+    // Simulate API call
+    await Future.delayed(const Duration(milliseconds: 250));
+    
+    return await _taskService.getTaskCountsByDateRange(start, end);
+  }
 }

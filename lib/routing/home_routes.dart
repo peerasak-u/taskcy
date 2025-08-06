@@ -1,10 +1,8 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../ui/home/widgets/home_screen.dart';
 import '../ui/home/widgets/task_detail_screen.dart';
 import '../ui/task_list/widgets/task_list_screen.dart';
-import '../ui/task_list/cubit/task_list_cubit.dart';
 import 'route_utils.dart';
 
 class HomeRoutes {
@@ -22,11 +20,8 @@ class HomeRoutes {
           ),
           GoRoute(
             path: 'task-list/:type',
-            builder: (context, state) => BlocProvider(
-              create: (context) => TaskListCubit(),
-              child: TaskListScreen(
-                taskType: state.pathParameters['type']!,
-              ),
+            builder: (context, state) => TaskListScreen(
+              taskType: state.pathParameters['type']!,
             ),
           ),
         ],
