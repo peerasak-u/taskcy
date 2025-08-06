@@ -60,14 +60,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   Widget _buildHeader(TaskListLoaded state) {
     final title = state.taskType == 'today' ? 'Today Task' : 'Monthly Task';
-    final isCalendarView = state.viewMode == TaskListViewMode.calendar;
     
     return HeaderWidget(
       centerText: title,
       leftIcon: Icons.arrow_back_ios,
-      rightIcon: isCalendarView ? Icons.edit_outlined : Icons.calendar_today,
+      rightIcon: Icons.edit_outlined,
       onLeftTap: () => context.pop(),
-      onRightTap: () => context.read<TaskListCubit>().toggleViewMode(),
+      onRightTap: null,
     );
   }
 
@@ -101,17 +100,22 @@ class _TaskListScreenState extends State<TaskListScreen> {
               ],
             ),
           ),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.calendar_month,
-              color: Colors.white,
-              size: 24,
+          GestureDetector(
+            onTap: () => context.read<TaskListCubit>().toggleViewMode(),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                state.viewMode == TaskListViewMode.calendar 
+                    ? Icons.view_agenda 
+                    : Icons.calendar_month,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           ),
         ],
