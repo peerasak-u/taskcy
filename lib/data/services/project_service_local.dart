@@ -1,34 +1,12 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../domain/models/project.dart';
 
 class ProjectServiceLocal {
-  static const String _projectsKey = 'projects';
-  static const String _projectCounterKey = 'project_counter';
+  static List<Project>? _projects;
+  static int _projectCounter = 4;
 
   Future<List<Project>> getProjects() async {
-    final prefs = await SharedPreferences.getInstance();
-    final projectsJson = prefs.getStringList(_projectsKey) ?? [];
-    
-    if (projectsJson.isEmpty) {
-      await _seedInitialData();
-      return await getProjects();
-    }
-    
-    return projectsJson.map((json) {
-      final Map<String, dynamic> projectMap = jsonDecode(json);
-      return Project(
-        id: projectMap['id'],
-        name: projectMap['name'],
-        description: projectMap['description'],
-        teamId: projectMap['teamId'],
-        ownerId: projectMap['ownerId'],
-        dueDate: projectMap['dueDate'] != null ? DateTime.parse(projectMap['dueDate']) : null,
-        createdAt: DateTime.parse(projectMap['createdAt']),
-        updatedAt: DateTime.parse(projectMap['updatedAt']),
-      );
-    }).toList();
+    _projects ??= _seedInitialProjects();
+    return List<Project>.from(_projects!);
   }
 
   Future<Project?> getProjectById(String id) async {
@@ -70,17 +48,16 @@ class ProjectServiceLocal {
   }
 
   Future<Project> saveProject(Project project) async {
-    final projects = await getProjects();
-    final existingIndex = projects.indexWhere((p) => p.id == project.id);
+    _projects ??= _seedInitialProjects();
+    final existingIndex = _projects!.indexWhere((p) => p.id == project.id);
     
     if (existingIndex != -1) {
-      projects[existingIndex] = project.copyWith(updatedAt: DateTime.now());
+      _projects![existingIndex] = project.copyWith(updatedAt: DateTime.now());
     } else {
-      projects.add(project);
+      _projects!.add(project);
     }
     
-    await _saveProjects(projects);
-    return projects.firstWhere((p) => p.id == project.id);
+    return _projects!.firstWhere((p) => p.id == project.id);
   }
 
   Future<Project> createProject({
@@ -90,7 +67,7 @@ class ProjectServiceLocal {
     required String ownerId,
     DateTime? dueDate,
   }) async {
-    final id = await _generateId();
+    final id = _generateId();
     final now = DateTime.now();
     
     final project = Project(
@@ -112,107 +89,79 @@ class ProjectServiceLocal {
     String? description,
     DateTime? dueDate,
   }) async {
-    final projects = await getProjects();
-    final projectIndex = projects.indexWhere((project) => project.id == id);
+    _projects ??= _seedInitialProjects();
+    final projectIndex = _projects!.indexWhere((project) => project.id == id);
     
     if (projectIndex == -1) {
       throw Exception('Project not found');
     }
     
-    final updatedProject = projects[projectIndex].copyWith(
+    final updatedProject = _projects![projectIndex].copyWith(
       name: name,
       description: description,
       dueDate: dueDate,
       updatedAt: DateTime.now(),
     );
     
-    projects[projectIndex] = updatedProject;
-    await _saveProjects(projects);
+    _projects![projectIndex] = updatedProject;
     
     return updatedProject;
   }
 
   Future<void> deleteProject(String id) async {
-    final projects = await getProjects();
-    projects.removeWhere((project) => project.id == id);
-    await _saveProjects(projects);
+    _projects ??= _seedInitialProjects();
+    _projects!.removeWhere((project) => project.id == id);
   }
 
-  Future<String> _generateId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final counter = prefs.getInt(_projectCounterKey) ?? 0;
-    final newCounter = counter + 1;
-    await prefs.setInt(_projectCounterKey, newCounter);
-    return 'project_$newCounter';
+  String _generateId() {
+    _projectCounter++;
+    return 'project_$_projectCounter';
   }
 
-  Future<void> _saveProjects(List<Project> projects) async {
-    final prefs = await SharedPreferences.getInstance();
-    final projectsJson = projects.map((project) {
-      return jsonEncode({
-        'id': project.id,
-        'name': project.name,
-        'description': project.description,
-        'teamId': project.teamId,
-        'ownerId': project.ownerId,
-        'dueDate': project.dueDate?.toIso8601String(),
-        'createdAt': project.createdAt.toIso8601String(),
-        'updatedAt': project.updatedAt.toIso8601String(),
-      });
-    }).toList();
-    
-    await prefs.setStringList(_projectsKey, projectsJson);
-  }
-
-  Future<void> _seedInitialData() async {
+  List<Project> _seedInitialProjects() {
     final now = DateTime.now();
     
-    final mockProjects = [
+    return [
       Project(
-        id: 'project_1',
-        name: 'Application Design',
-        description: 'UI Design Kit for mobile productivity application with modern interface components',
-        teamId: 'team_1',
-        ownerId: 'user_1',
-        dueDate: now.add(const Duration(days: 30)),
-        createdAt: now.subtract(const Duration(days: 15)),
-        updatedAt: now.subtract(const Duration(hours: 6)),
-      ),
-      Project(
-        id: 'project_2',
-        name: 'Banking Mobile App',
-        description: 'UI Design for secure banking mobile application with payment integration',
-        teamId: 'team_2',
-        ownerId: 'user_2',
-        dueDate: now.add(const Duration(days: 45)),
-        createdAt: now.subtract(const Duration(days: 20)),
-        updatedAt: now.subtract(const Duration(hours: 12)),
-      ),
-      Project(
-        id: 'project_3',
-        name: 'Online Course',
-        description: 'Landing page design and course management platform development',
-        teamId: 'team_3',
-        ownerId: 'user_3',
-        dueDate: now.add(const Duration(days: 60)),
-        createdAt: now.subtract(const Duration(days: 10)),
+        id: 'project_axentech',
+        name: 'AxenTech Assignment',
+        description: 'Flutter learning project focusing on foundational development skills and modern mobile app architecture',
+        teamId: 'team_axentech',
+        ownerId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 21)), // 3 weeks from now
+        createdAt: now.subtract(const Duration(days: 25)),
         updatedAt: now.subtract(const Duration(hours: 2)),
       ),
       Project(
-        id: 'project_4',
-        name: 'E-commerce Platform',
-        description: 'Complete e-commerce solution with modern shopping cart and checkout flow',
-        teamId: 'team_1',
-        ownerId: 'user_1',
-        dueDate: now.add(const Duration(days: 90)),
-        createdAt: now.subtract(const Duration(days: 5)),
-        updatedAt: now.subtract(const Duration(days: 1)),
+        id: 'project_pygmy',
+        name: 'Migrate Pygmy to Flutter',
+        description: 'Complex migration project from iOS SwiftUI to Flutter, including Vision Framework integration and database migration',
+        teamId: 'team_pygmy',
+        ownerId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 90)), // 3 months from now
+        createdAt: now.subtract(const Duration(days: 20)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      Project(
+        id: 'project_brand_identity',
+        name: 'Brand Identity Campaign',
+        description: 'Comprehensive marketing campaign including brand research, logo design, style guide creation, and social media strategy',
+        teamId: 'team_creativeworks',
+        ownerId: 'user_sarah',
+        dueDate: now.add(const Duration(days: 14)), // 2 weeks from now
+        createdAt: now.subtract(const Duration(days: 55)),
+        updatedAt: now.subtract(const Duration(minutes: 30)),
+      ),
+      Project(
+        id: 'project_personal_tools',
+        name: 'Personal Productivity Tools',
+        description: 'Small utility applications for personal productivity and workflow enhancement',
+        teamId: 'team_axentech',
+        ownerId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 42)), // 6 weeks from now
+        createdAt: now.subtract(const Duration(days: 2)),
+        updatedAt: now.subtract(const Duration(minutes: 15)),
       ),
     ];
-
-    await _saveProjects(mockProjects);
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_projectCounterKey, mockProjects.length);
   }
 }

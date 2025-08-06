@@ -1,36 +1,12 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../domain/models/task.dart';
 
 class TaskServiceLocal {
-  static const String _tasksKey = 'tasks';
-  static const String _taskCounterKey = 'task_counter';
+  static List<Task>? _tasks;
+  static int _taskCounter = 20;
 
   Future<List<Task>> getTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasksJson = prefs.getStringList(_tasksKey) ?? [];
-    
-    if (tasksJson.isEmpty) {
-      await _seedInitialData();
-      return await getTasks();
-    }
-    
-    return tasksJson.map((json) {
-      final Map<String, dynamic> taskMap = jsonDecode(json);
-      return Task(
-        id: taskMap['id'],
-        title: taskMap['title'],
-        description: taskMap['description'],
-        status: TaskStatus.values.firstWhere((s) => s.name == taskMap['status']),
-        priority: TaskPriority.values.firstWhere((p) => p.name == taskMap['priority']),
-        projectId: taskMap['projectId'],
-        assigneeId: taskMap['assigneeId'],
-        dueDate: taskMap['dueDate'] != null ? DateTime.parse(taskMap['dueDate']) : null,
-        createdAt: DateTime.parse(taskMap['createdAt']),
-        updatedAt: DateTime.parse(taskMap['updatedAt']),
-      );
-    }).toList();
+    _tasks ??= _seedInitialTasks();
+    return List<Task>.from(_tasks!);
   }
 
   Future<Task?> getTaskById(String id) async {
@@ -73,17 +49,16 @@ class TaskServiceLocal {
   }
 
   Future<Task> saveTask(Task task) async {
-    final tasks = await getTasks();
-    final existingIndex = tasks.indexWhere((t) => t.id == task.id);
+    _tasks ??= _seedInitialTasks();
+    final existingIndex = _tasks!.indexWhere((t) => t.id == task.id);
     
     if (existingIndex != -1) {
-      tasks[existingIndex] = task.copyWith(updatedAt: DateTime.now());
+      _tasks![existingIndex] = task.copyWith(updatedAt: DateTime.now());
     } else {
-      tasks.add(task);
+      _tasks!.add(task);
     }
     
-    await _saveTasks(tasks);
-    return tasks.firstWhere((t) => t.id == task.id);
+    return _tasks!.firstWhere((t) => t.id == task.id);
   }
 
   Future<Task> createTask({
@@ -95,7 +70,7 @@ class TaskServiceLocal {
     String? assigneeId,
     DateTime? dueDate,
   }) async {
-    final id = await _generateId();
+    final id = _generateId();
     final now = DateTime.now();
     
     final task = Task(
@@ -122,14 +97,14 @@ class TaskServiceLocal {
     String? assigneeId,
     DateTime? dueDate,
   }) async {
-    final tasks = await getTasks();
-    final taskIndex = tasks.indexWhere((task) => task.id == id);
+    _tasks ??= _seedInitialTasks();
+    final taskIndex = _tasks!.indexWhere((task) => task.id == id);
     
     if (taskIndex == -1) {
       throw Exception('Task not found');
     }
     
-    final updatedTask = tasks[taskIndex].copyWith(
+    final updatedTask = _tasks![taskIndex].copyWith(
       title: title,
       description: description,
       status: status,
@@ -139,127 +114,272 @@ class TaskServiceLocal {
       updatedAt: DateTime.now(),
     );
     
-    tasks[taskIndex] = updatedTask;
-    await _saveTasks(tasks);
+    _tasks![taskIndex] = updatedTask;
     
     return updatedTask;
   }
 
   Future<void> deleteTask(String id) async {
-    final tasks = await getTasks();
-    tasks.removeWhere((task) => task.id == id);
-    await _saveTasks(tasks);
+    _tasks ??= _seedInitialTasks();
+    _tasks!.removeWhere((task) => task.id == id);
   }
 
-  Future<String> _generateId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final counter = prefs.getInt(_taskCounterKey) ?? 0;
-    final newCounter = counter + 1;
-    await prefs.setInt(_taskCounterKey, newCounter);
-    return 'task_$newCounter';
+  String _generateId() {
+    _taskCounter++;
+    return 'task_$_taskCounter';
   }
 
-  Future<void> _saveTasks(List<Task> tasks) async {
-    final prefs = await SharedPreferences.getInstance();
-    final tasksJson = tasks.map((task) {
-      return jsonEncode({
-        'id': task.id,
-        'title': task.title,
-        'description': task.description,
-        'status': task.status.name,
-        'priority': task.priority.name,
-        'projectId': task.projectId,
-        'assigneeId': task.assigneeId,
-        'dueDate': task.dueDate?.toIso8601String(),
-        'createdAt': task.createdAt.toIso8601String(),
-        'updatedAt': task.updatedAt.toIso8601String(),
-      });
-    }).toList();
-    
-    await prefs.setStringList(_tasksKey, tasksJson);
-  }
-
-  Future<void> _seedInitialData() async {
+  List<Task> _seedInitialTasks() {
     final now = DateTime.now();
     
-    final mockTasks = [
+    return [
+      // AxenTech Assignment Tasks (5 tasks)
       Task(
-        id: 'task_1',
-        title: 'Create Detail Booking',
-        description: 'Design and implement the detailed booking interface for mobile app',
+        id: 'task_axentech_1',
+        title: 'Learn Flutter fundamentals',
+        description: 'Complete Flutter basics course, understand widgets, state management, and development workflow',
+        status: TaskStatus.completed,
+        priority: TaskPriority.high,
+        projectId: 'project_axentech',
+        assigneeId: 'user_peerasak',
+        dueDate: now.subtract(const Duration(days: 3)),
+        createdAt: now.subtract(const Duration(days: 25)),
+        updatedAt: now.subtract(const Duration(days: 3)),
+      ),
+      Task(
+        id: 'task_axentech_2',
+        title: 'Setup project structure',
+        description: 'Initialize Flutter project with clean architecture, configure dependencies, and setup development environment',
         status: TaskStatus.inProgress,
         priority: TaskPriority.high,
-        projectId: 'project_1',
-        assigneeId: 'user_1',
-        dueDate: now.add(const Duration(days: 5)),
+        projectId: 'project_axentech',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 1)), // Due tomorrow
         createdAt: now.subtract(const Duration(days: 3)),
-        updatedAt: now.subtract(const Duration(minutes: 2)),
-      ),
-      Task(
-        id: 'task_2',
-        title: 'Revision Home Page',
-        description: 'Update and refine the home page design based on user feedback',
-        status: TaskStatus.inProgress,
-        priority: TaskPriority.medium,
-        projectId: 'project_2',
-        assigneeId: 'user_2',
-        dueDate: now.add(const Duration(days: 3)),
-        createdAt: now.subtract(const Duration(days: 2)),
-        updatedAt: now.subtract(const Duration(minutes: 5)),
-      ),
-      Task(
-        id: 'task_3',
-        title: 'Working On Landing Page',
-        description: 'Develop the main landing page for the online course platform',
-        status: TaskStatus.inProgress,
-        priority: TaskPriority.high,
-        projectId: 'project_3',
-        assigneeId: 'user_3',
-        dueDate: now.add(const Duration(days: 7)),
-        createdAt: now.subtract(const Duration(days: 1)),
-        updatedAt: now.subtract(const Duration(minutes: 7)),
-      ),
-      Task(
-        id: 'task_4',
-        title: 'User Authentication System',
-        description: 'Implement secure user authentication and authorization',
-        status: TaskStatus.todo,
-        priority: TaskPriority.urgent,
-        projectId: 'project_1',
-        assigneeId: 'user_1',
-        dueDate: now.add(const Duration(days: 10)),
-        createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(hours: 2)),
       ),
       Task(
-        id: 'task_5',
-        title: 'Payment Integration',
-        description: 'Integrate payment gateway for seamless transactions',
-        status: TaskStatus.completed,
+        id: 'task_axentech_3',
+        title: 'Research state management patterns',
+        description: 'Evaluate BLoC, Provider, and Riverpod for project requirements and team expertise',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_axentech',
+        assigneeId: 'user_claude',
+        dueDate: now.add(const Duration(days: 3)),
+        createdAt: now.subtract(const Duration(days: 2)),
+        updatedAt: now.subtract(const Duration(days: 2)),
+      ),
+      Task(
+        id: 'task_axentech_4',
+        title: 'Implement core UI components',
+        description: 'Build reusable widgets, design system components, and navigation structure',
+        status: TaskStatus.inProgress,
         priority: TaskPriority.high,
-        projectId: 'project_2',
-        assigneeId: 'user_2',
-        dueDate: now.subtract(const Duration(days: 1)),
-        createdAt: now.subtract(const Duration(days: 10)),
+        projectId: 'project_axentech',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 6)),
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(minutes: 30)),
+      ),
+      Task(
+        id: 'task_axentech_5',
+        title: 'Craft typography and visual design',
+        description: 'Design typography system, color palette, and visual hierarchy for consistent user experience',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_axentech',
+        assigneeId: 'user_claude',
+        dueDate: now.add(const Duration(days: 9)),
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+
+      // Pygmy Migration Tasks (6 tasks)
+      Task(
+        id: 'task_pygmy_1',
+        title: 'Setup new Flutter project with guidelines',
+        description: 'Initialize Flutter project following established project guidelines and architecture patterns',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.urgent,
+        projectId: 'project_pygmy',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 2)), // Due Aug 8
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      Task(
+        id: 'task_pygmy_2',
+        title: 'Bridge Vision Framework to Flutter',
+        description: 'Create platform channel to integrate iOS Vision Framework capabilities with Flutter for OCR functionality',
+        status: TaskStatus.todo,
+        priority: TaskPriority.high,
+        projectId: 'project_pygmy',
+        assigneeId: 'user_claude',
+        dueDate: now.add(const Duration(days: 14)), // Aug 20 (overdue simulation)
+        createdAt: now.subtract(const Duration(days: 15)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),
       Task(
-        id: 'task_6',
-        title: 'Course Content Management',
-        description: 'Build content management system for course materials',
-        status: TaskStatus.inProgress,
+        id: 'task_pygmy_3',
+        title: 'Migrate database from SwiftData to SQLite',
+        description: 'Convert existing SwiftData models to SQLite schema and implement data migration scripts',
+        status: TaskStatus.todo,
+        priority: TaskPriority.high,
+        projectId: 'project_pygmy',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 19)), // Aug 25
+        createdAt: now.subtract(const Duration(days: 10)),
+        updatedAt: now.subtract(const Duration(days: 10)),
+      ),
+      Task(
+        id: 'task_pygmy_4',
+        title: 'Research Android OCR solutions',
+        description: 'Evaluate ML Kit, Tesseract, and other OCR libraries for Android compatibility and accuracy',
+        status: TaskStatus.todo,
         priority: TaskPriority.medium,
-        projectId: 'project_3',
-        assigneeId: 'user_3',
-        dueDate: now.add(const Duration(days: 14)),
-        createdAt: now.subtract(const Duration(days: 4)),
-        updatedAt: now.subtract(const Duration(hours: 1)),
+        projectId: 'project_pygmy',
+        assigneeId: 'user_claude',
+        dueDate: now.add(const Duration(days: 12)), // Aug 18
+        createdAt: now.subtract(const Duration(days: 5)),
+        updatedAt: now.subtract(const Duration(days: 5)),
+      ),
+      Task(
+        id: 'task_pygmy_5',
+        title: 'Implement core features migration',
+        description: 'Migrate core application features from SwiftUI to Flutter widgets and functionality',
+        status: TaskStatus.todo,
+        priority: TaskPriority.high,
+        projectId: 'project_pygmy',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 40)), // Sep 15
+        createdAt: now.subtract(const Duration(days: 3)),
+        updatedAt: now.subtract(const Duration(days: 3)),
+      ),
+      Task(
+        id: 'task_pygmy_6',
+        title: 'Design and craft UI',
+        description: 'Design Flutter UI components to match iOS version while optimizing for cross-platform consistency',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_pygmy',
+        assigneeId: 'user_claude',
+        dueDate: now.add(const Duration(days: 56)), // Oct 1
+        createdAt: now.subtract(const Duration(days: 2)),
+        updatedAt: now.subtract(const Duration(days: 2)),
+      ),
+
+      // Brand Identity Campaign Tasks (6 tasks)
+      Task(
+        id: 'task_brand_1',
+        title: 'Market research and competitor analysis',
+        description: 'Conduct comprehensive market research and analyze competitor brand strategies and positioning',
+        status: TaskStatus.completed,
+        priority: TaskPriority.high,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_sarah',
+        dueDate: now.subtract(const Duration(days: 9)), // July 28
+        createdAt: now.subtract(const Duration(days: 55)),
+        updatedAt: now.subtract(const Duration(days: 9)),
+      ),
+      Task(
+        id: 'task_brand_2',
+        title: 'Design brand logo concepts',
+        description: 'Create multiple logo variations, color schemes, and brand identity concepts for client review',
+        status: TaskStatus.completed,
+        priority: TaskPriority.high,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_alex',
+        dueDate: now.subtract(const Duration(days: 5)), // Aug 1
+        createdAt: now.subtract(const Duration(days: 35)),
+        updatedAt: now.subtract(const Duration(days: 5)),
+      ),
+      Task(
+        id: 'task_brand_3',
+        title: 'Create comprehensive brand style guide',
+        description: 'Develop detailed brand guidelines including typography, color palettes, usage rules, and applications',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.high,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_alex',
+        dueDate: now.add(const Duration(days: 2)), // Aug 8
+        createdAt: now.subtract(const Duration(days: 15)),
+        updatedAt: now.subtract(const Duration(minutes: 45)),
+      ),
+      Task(
+        id: 'task_brand_4',
+        title: 'Develop marketing materials',
+        description: 'Design brochures, business cards, digital assets, and promotional materials using new brand identity',
+        status: TaskStatus.completed,
+        priority: TaskPriority.medium,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_sarah',
+        dueDate: now.subtract(const Duration(days: 2)), // Aug 4
+        createdAt: now.subtract(const Duration(days: 20)),
+        updatedAt: now.subtract(const Duration(days: 2)),
+      ),
+      Task(
+        id: 'task_brand_5',
+        title: 'Launch social media campaign',
+        description: 'Execute social media strategy across platforms with consistent brand messaging and visual identity',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.urgent,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_sarah',
+        dueDate: now.add(const Duration(days: 4)), // Aug 10
+        createdAt: now.subtract(const Duration(days: 5)),
+        updatedAt: now.subtract(const Duration(minutes: 20)),
+      ),
+      Task(
+        id: 'task_brand_6',
+        title: 'Measure campaign effectiveness',
+        description: 'Track campaign metrics, analyze engagement data, and prepare effectiveness report for stakeholders',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_brand_identity',
+        assigneeId: 'user_sarah',
+        dueDate: now.add(const Duration(days: 19)), // Aug 25
+        createdAt: now.subtract(const Duration(days: 10)),
+        updatedAt: now.subtract(const Duration(days: 10)),
+      ),
+
+      // Personal Productivity Tools Tasks (3 tasks)
+      Task(
+        id: 'task_personal_1',
+        title: 'Define requirements and scope',
+        description: 'Document feature requirements, user stories, and project scope for personal productivity utilities',
+        status: TaskStatus.inProgress,
+        priority: TaskPriority.low,
+        projectId: 'project_personal_tools',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 4)), // Aug 10
+        createdAt: now, // Started today
+        updatedAt: now.subtract(const Duration(minutes: 10)),
+      ),
+      Task(
+        id: 'task_personal_2',
+        title: 'Create wireframes and mockups',
+        description: 'Design user interface wireframes and interactive mockups for productivity tool features',
+        status: TaskStatus.todo,
+        priority: TaskPriority.low,
+        projectId: 'project_personal_tools',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 12)), // Aug 18
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+      ),
+      Task(
+        id: 'task_personal_3',
+        title: 'Develop MVP features',
+        description: 'Implement minimum viable product with core productivity features and basic user interface',
+        status: TaskStatus.todo,
+        priority: TaskPriority.medium,
+        projectId: 'project_personal_tools',
+        assigneeId: 'user_peerasak',
+        dueDate: now.add(const Duration(days: 26)), // Sep 1
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
       ),
     ];
-
-    await _saveTasks(mockTasks);
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_taskCounterKey, mockTasks.length);
   }
 }

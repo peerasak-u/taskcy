@@ -1,26 +1,11 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../domain/models/user.dart';
 
 class UserServiceLocal {
-  static const String _usersKey = 'users';
+  static List<User>? _users;
 
   Future<List<User>> getUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getStringList(_usersKey) ?? [];
-    
-    return usersJson.map((json) {
-      final Map<String, dynamic> userMap = jsonDecode(json);
-      return User(
-        id: userMap['id'],
-        email: userMap['email'],
-        fullName: userMap['fullName'],
-        avatarUrl: userMap['avatarUrl'],
-        createdAt: DateTime.parse(userMap['createdAt']),
-        updatedAt: DateTime.parse(userMap['updatedAt']),
-      );
-    }).toList();
+    _users ??= _seedInitialUsers();
+    return List<User>.from(_users!);
   }
 
   Future<User?> getUserById(String id) async {
@@ -43,62 +28,81 @@ class UserServiceLocal {
   }
 
   Future<User> saveUser(User user) async {
-    final users = await getUsers();
-    final existingIndex = users.indexWhere((u) => u.id == user.id);
+    _users ??= _seedInitialUsers();
+    final existingIndex = _users!.indexWhere((u) => u.id == user.id);
     
     if (existingIndex != -1) {
-      users[existingIndex] = user.copyWith(updatedAt: DateTime.now());
+      _users![existingIndex] = user.copyWith(updatedAt: DateTime.now());
     } else {
-      users.add(user);
+      _users!.add(user);
     }
     
-    await _saveUsers(users);
-    return users.firstWhere((u) => u.id == user.id);
+    return _users!.firstWhere((u) => u.id == user.id);
   }
 
   Future<User> updateUser(String id, {
     String? fullName,
     String? avatarUrl,
   }) async {
-    final users = await getUsers();
-    final userIndex = users.indexWhere((user) => user.id == id);
+    _users ??= _seedInitialUsers();
+    final userIndex = _users!.indexWhere((user) => user.id == id);
     
     if (userIndex == -1) {
       throw Exception('User not found');
     }
     
-    final updatedUser = users[userIndex].copyWith(
+    final updatedUser = _users![userIndex].copyWith(
       fullName: fullName,
       avatarUrl: avatarUrl,
       updatedAt: DateTime.now(),
     );
     
-    users[userIndex] = updatedUser;
-    await _saveUsers(users);
+    _users![userIndex] = updatedUser;
     
     return updatedUser;
   }
 
   Future<void> deleteUser(String id) async {
-    final users = await getUsers();
-    users.removeWhere((user) => user.id == id);
-    await _saveUsers(users);
+    _users ??= _seedInitialUsers();
+    _users!.removeWhere((user) => user.id == id);
   }
 
-
-  Future<void> _saveUsers(List<User> users) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = users.map((user) {
-      return jsonEncode({
-        'id': user.id,
-        'email': user.email,
-        'fullName': user.fullName,
-        'avatarUrl': user.avatarUrl,
-        'createdAt': user.createdAt.toIso8601String(),
-        'updatedAt': user.updatedAt.toIso8601String(),
-      });
-    }).toList();
+  List<User> _seedInitialUsers() {
+    final now = DateTime.now();
     
-    await prefs.setStringList(_usersKey, usersJson);
+    return [
+      User(
+        id: 'user_peerasak',
+        email: 'peerasak.dev@example.com',
+        fullName: 'Peerasak',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Peerasak&background=756EF3&color=fff&size=200',
+        createdAt: now.subtract(const Duration(days: 60)),
+        updatedAt: now.subtract(const Duration(hours: 2)),
+      ),
+      User(
+        id: 'user_claude',
+        email: 'claude@anthropic.ai',
+        fullName: 'Claude',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Claude&background=63B4FF&color=fff&size=200',
+        createdAt: now.subtract(const Duration(days: 30)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      User(
+        id: 'user_sarah',
+        email: 'sarah.chen@creativeworks.com',
+        fullName: 'Sarah Chen',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Sarah+Chen&background=B1D199&color=fff&size=200',
+        createdAt: now.subtract(const Duration(days: 45)),
+        updatedAt: now.subtract(const Duration(hours: 4)),
+      ),
+      User(
+        id: 'user_alex',
+        email: 'alex.rivera@creativeworks.com',
+        fullName: 'Alex Rivera',
+        avatarUrl: 'https://ui-avatars.com/api/?name=Alex+Rivera&background=FFB35A&color=fff&size=200',
+        createdAt: now.subtract(const Duration(days: 35)),
+        updatedAt: now.subtract(const Duration(hours: 6)),
+      ),
+    ];
   }
 }

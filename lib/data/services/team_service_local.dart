@@ -1,29 +1,12 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../domain/models/team.dart';
 
 class TeamServiceLocal {
-  static const String _teamsKey = 'teams';
-  static const String _teamCounterKey = 'team_counter';
+  static List<Team>? _teams;
+  static int _teamCounter = 3;
 
   Future<List<Team>> getTeams() async {
-    final prefs = await SharedPreferences.getInstance();
-    final teamsJson = prefs.getStringList(_teamsKey) ?? [];
-    
-    return teamsJson.map((json) {
-      final Map<String, dynamic> teamMap = jsonDecode(json);
-      return Team(
-        id: teamMap['id'],
-        name: teamMap['name'],
-        description: teamMap['description'],
-        privacy: TeamPrivacy.values.firstWhere((p) => p.name == teamMap['privacy']),
-        ownerId: teamMap['ownerId'],
-        memberIds: List<String>.from(teamMap['memberIds'] ?? []),
-        createdAt: DateTime.parse(teamMap['createdAt']),
-        updatedAt: DateTime.parse(teamMap['updatedAt']),
-      );
-    }).toList();
+    _teams ??= _seedInitialTeams();
+    return List<Team>.from(_teams!);
   }
 
   Future<Team?> getTeamById(String id) async {
@@ -63,17 +46,16 @@ class TeamServiceLocal {
   }
 
   Future<Team> saveTeam(Team team) async {
-    final teams = await getTeams();
-    final existingIndex = teams.indexWhere((t) => t.id == team.id);
+    _teams ??= _seedInitialTeams();
+    final existingIndex = _teams!.indexWhere((t) => t.id == team.id);
     
     if (existingIndex != -1) {
-      teams[existingIndex] = team.copyWith(updatedAt: DateTime.now());
+      _teams![existingIndex] = team.copyWith(updatedAt: DateTime.now());
     } else {
-      teams.add(team);
+      _teams!.add(team);
     }
     
-    await _saveTeams(teams);
-    return teams.firstWhere((t) => t.id == team.id);
+    return _teams!.firstWhere((t) => t.id == team.id);
   }
 
   Future<Team> createTeam({
@@ -82,7 +64,7 @@ class TeamServiceLocal {
     required TeamPrivacy privacy,
     required String ownerId,
   }) async {
-    final id = await _generateId();
+    final id = _generateId();
     final now = DateTime.now();
     
     final team = Team(
@@ -104,35 +86,34 @@ class TeamServiceLocal {
     String? description,
     TeamPrivacy? privacy,
   }) async {
-    final teams = await getTeams();
-    final teamIndex = teams.indexWhere((team) => team.id == id);
+    _teams ??= _seedInitialTeams();
+    final teamIndex = _teams!.indexWhere((team) => team.id == id);
     
     if (teamIndex == -1) {
       throw Exception('Team not found');
     }
     
-    final updatedTeam = teams[teamIndex].copyWith(
+    final updatedTeam = _teams![teamIndex].copyWith(
       name: name,
       description: description,
       privacy: privacy,
       updatedAt: DateTime.now(),
     );
     
-    teams[teamIndex] = updatedTeam;
-    await _saveTeams(teams);
+    _teams![teamIndex] = updatedTeam;
     
     return updatedTeam;
   }
 
   Future<Team> addMemberToTeam(String teamId, String memberId) async {
-    final teams = await getTeams();
-    final teamIndex = teams.indexWhere((team) => team.id == teamId);
+    _teams ??= _seedInitialTeams();
+    final teamIndex = _teams!.indexWhere((team) => team.id == teamId);
     
     if (teamIndex == -1) {
       throw Exception('Team not found');
     }
     
-    final team = teams[teamIndex];
+    final team = _teams![teamIndex];
     if (!team.memberIds.contains(memberId)) {
       final updatedMemberIds = List<String>.from(team.memberIds)..add(memberId);
       final updatedTeam = team.copyWith(
@@ -140,8 +121,7 @@ class TeamServiceLocal {
         updatedAt: DateTime.now(),
       );
       
-      teams[teamIndex] = updatedTeam;
-      await _saveTeams(teams);
+      _teams![teamIndex] = updatedTeam;
       
       return updatedTeam;
     }
@@ -150,55 +130,69 @@ class TeamServiceLocal {
   }
 
   Future<Team> removeMemberFromTeam(String teamId, String memberId) async {
-    final teams = await getTeams();
-    final teamIndex = teams.indexWhere((team) => team.id == teamId);
+    _teams ??= _seedInitialTeams();
+    final teamIndex = _teams!.indexWhere((team) => team.id == teamId);
     
     if (teamIndex == -1) {
       throw Exception('Team not found');
     }
     
-    final team = teams[teamIndex];
+    final team = _teams![teamIndex];
     final updatedMemberIds = List<String>.from(team.memberIds)..remove(memberId);
     final updatedTeam = team.copyWith(
       memberIds: updatedMemberIds,
       updatedAt: DateTime.now(),
     );
     
-    teams[teamIndex] = updatedTeam;
-    await _saveTeams(teams);
+    _teams![teamIndex] = updatedTeam;
     
     return updatedTeam;
   }
 
   Future<void> deleteTeam(String id) async {
-    final teams = await getTeams();
-    teams.removeWhere((team) => team.id == id);
-    await _saveTeams(teams);
+    _teams ??= _seedInitialTeams();
+    _teams!.removeWhere((team) => team.id == id);
   }
 
-  Future<String> _generateId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final counter = prefs.getInt(_teamCounterKey) ?? 0;
-    final newCounter = counter + 1;
-    await prefs.setInt(_teamCounterKey, newCounter);
-    return 'team_$newCounter';
+  String _generateId() {
+    _teamCounter++;
+    return 'team_$_teamCounter';
   }
 
-  Future<void> _saveTeams(List<Team> teams) async {
-    final prefs = await SharedPreferences.getInstance();
-    final teamsJson = teams.map((team) {
-      return jsonEncode({
-        'id': team.id,
-        'name': team.name,
-        'description': team.description,
-        'privacy': team.privacy.name,
-        'ownerId': team.ownerId,
-        'memberIds': team.memberIds,
-        'createdAt': team.createdAt.toIso8601String(),
-        'updatedAt': team.updatedAt.toIso8601String(),
-      });
-    }).toList();
+  List<Team> _seedInitialTeams() {
+    final now = DateTime.now();
     
-    await prefs.setStringList(_teamsKey, teamsJson);
+    return [
+      Team(
+        id: 'team_axentech',
+        name: 'AxenTech',
+        description: 'Flutter development team for AxenTech assignment project',
+        privacy: TeamPrivacy.private,
+        ownerId: 'user_peerasak',
+        memberIds: const ['user_claude'],
+        createdAt: now.subtract(const Duration(days: 25)),
+        updatedAt: now.subtract(const Duration(hours: 3)),
+      ),
+      Team(
+        id: 'team_pygmy',
+        name: 'Pygmy Migration',
+        description: 'Dedicated team for migrating Pygmy app from iOS to Flutter',
+        privacy: TeamPrivacy.private,
+        ownerId: 'user_peerasak',
+        memberIds: const ['user_claude'],
+        createdAt: now.subtract(const Duration(days: 20)),
+        updatedAt: now.subtract(const Duration(hours: 1)),
+      ),
+      Team(
+        id: 'team_creativeworks',
+        name: 'CreativeWorks Studio',
+        description: 'Multi-disciplinary team for creative and marketing projects',
+        privacy: TeamPrivacy.public,
+        ownerId: 'user_sarah',
+        memberIds: const ['user_peerasak', 'user_claude', 'user_alex'],
+        createdAt: now.subtract(const Duration(days: 40)),
+        updatedAt: now.subtract(const Duration(minutes: 30)),
+      ),
+    ];
   }
 }
