@@ -104,7 +104,7 @@ The application manages these primary entities:
 
 ## Color Theme System
 
-The app uses a comprehensive color theme system located in `lib/ui/core/theme/`:
+The app uses a comprehensive color theme system located in `lib/ui/core/theme/` with centralized color constants for optimal performance and consistency.
 
 ### Color Palette
 - **Background**: White (`#FFFFFF`)
@@ -114,23 +114,40 @@ The app uses a comprehensive color theme system located in `lib/ui/core/theme/`:
 - **Green**: `#B1D199`
 - **Orange**: `#FFB35A`
 
-### Usage
+### Usage Examples
 ```dart
-// Direct color access
+// Direct color access (recommended for performance)
 Container(color: AppColors.primary)
+Container(color: AppColors.blue)
 
-// Theme extension access
+// Semi-transparent colors (use withValues instead of deprecated withOpacity)
+Card(color: AppColors.green.withValues(alpha: 0.1))
+
+// Status indicators
+Icon(Icons.check_circle, color: AppColors.success)
+Icon(Icons.warning, color: AppColors.warning)
+
+// Progress indicators
+LinearProgressIndicator(
+  backgroundColor: AppColors.progressLow,
+  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.progressHigh),
+)
+
+// Theme extension (only when needed for light/dark theme adaptation)
 final customColors = Theme.of(context).extension<CustomColorsExtension>()!;
-Container(color: customColors.blue)
-
-// Standard theme colors
-Container(color: Theme.of(context).colorScheme.primary)
+Container(color: customColors.shadow) // Adapts between light/dark themes
 ```
 
 ### Files
 - `app_colors.dart`: Color constants and palette
 - `custom_colors_extension.dart`: Theme extension for custom colors
 - `theme_state.dart`: Complete theme configuration for light/dark modes
+
+### Best Practices
+- **Always prefer `AppColors` constants** over theme extension lookups for better performance
+- Use `withValues(alpha: ...)` instead of deprecated `withOpacity()`
+- Use semantic color names (`AppColors.success`) rather than direct colors (`AppColors.green`)
+- See `docs/PROJECT_GUIDELINE.md` for comprehensive color system documentation
 
 ## File Organization Conventions
 

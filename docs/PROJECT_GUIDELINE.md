@@ -1112,4 +1112,195 @@ intl: any
 flutter gen-l10n
 ```
 
+## Color Theme System
+
+### Overview
+
+The application uses a centralized color system built on Flutter's Material Theme with custom extensions. All colors are defined as constants in `AppColors` class for optimal performance and consistency.
+
+### Color Architecture
+
+```
+lib/ui/core/theme/
+├── app_colors.dart              # Core color constants
+├── custom_colors_extension.dart # Theme extension wrapper  
+└── theme_state.dart            # Complete theme configuration
+```
+
+### Color Palette
+
+The app uses a carefully designed color palette optimized for both light and dark themes:
+
+**Brand Colors**
+- **Primary**: `#756EF3` (Purple) - Main brand color for primary actions
+- **Secondary**: `#D1E2FE` (Light Purple) - Supporting brand elements
+- **Background**: `#FFFFFF` (White) - Main background color
+
+**Functional Colors**
+- **Blue**: `#63B4FF` - Information and secondary actions
+- **Green**: `#B1D199` - Success states and positive actions  
+- **Orange**: `#FFB35A` - Warning states and in-progress indicators
+- **Red**: `#FF5757` - Error states and destructive actions
+
+**Text Colors**
+- **Primary**: `#1A1A1A` - Main text content
+- **Secondary**: `#757575` - Supporting text
+- **Light**: `#BDBDBD` - Placeholder and disabled text
+
+**Surface Colors**
+- **Surface**: `#F8F9FA` - Card backgrounds
+- **Surface Variant**: `#F3F4F6` - Alternative surfaces
+- **Outline**: `#E0E0E0` - Borders and dividers
+
+### Usage Patterns
+
+#### 1. Direct Color Access (Recommended)
+
+Use `AppColors` directly for best performance:
+
+```dart
+Container(
+  color: AppColors.primary,
+  child: Text(
+    'Primary Button',
+    style: TextStyle(color: Colors.white),
+  ),
+)
+```
+
+#### 2. Semi-Transparent Colors
+
+Use `withValues(alpha: ...)` for transparency:
+
+```dart
+Card(
+  color: AppColors.green.withValues(alpha: 0.1), // 10% opacity
+  child: Column(
+    children: [
+      Icon(Icons.check_circle, color: AppColors.success),
+      Text('Completed', style: TextStyle(color: AppColors.success)),
+    ],
+  ),
+)
+```
+
+#### 3. Status-Based Color Usage
+
+Use semantic color names for status indicators:
+
+```dart
+// Task status cards
+Widget buildStatusCard(TaskStatus status) {
+  late Color cardColor;
+  late Color iconColor;
+  late IconData icon;
+  
+  switch (status) {
+    case TaskStatus.completed:
+      cardColor = AppColors.green.withValues(alpha: 0.1);
+      iconColor = AppColors.success;
+      icon = Icons.check_circle;
+      break;
+    case TaskStatus.inProgress:
+      cardColor = AppColors.orange.withValues(alpha: 0.1);
+      iconColor = AppColors.warning;
+      icon = Icons.access_time;
+      break;
+    case TaskStatus.todo:
+      cardColor = AppColors.blue.withValues(alpha: 0.1);
+      iconColor = AppColors.info;
+      icon = Icons.schedule;
+      break;
+  }
+  
+  return Card(
+    color: cardColor,
+    child: Column(
+      children: [
+        Icon(icon, color: iconColor),
+        Text(status.displayName, style: TextStyle(color: iconColor)),
+      ],
+    ),
+  );
+}
+```
+
+#### 4. Progress Indicators
+
+Use graduated colors for progress visualization:
+
+```dart
+LinearProgressIndicator(
+  value: 0.6,
+  backgroundColor: AppColors.progressLow,
+  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.progressHigh),
+)
+```
+
+#### 5. Theme Extension Access (When Needed)
+
+Use theme extension for complex theming scenarios:
+
+```dart
+final customColors = Theme.of(context).extension<CustomColorsExtension>()!;
+Container(color: customColors.shadow) // Adapts to light/dark theme
+```
+
+### Best Practices
+
+#### 1. Performance Optimization
+- **Always prefer `AppColors` constants** over theme extension lookups
+- Use `const` constructors when all parameters are compile-time constants
+- Cache color values in build methods if expensive calculations are needed
+
+#### 2. Consistency Guidelines
+- Use semantic color names (`success`, `warning`, `error`) over direct colors (`green`, `orange`, `red`)
+- Maintain consistent opacity levels: 0.1 for subtle backgrounds, 0.2 for hover states
+- Follow Material Design color contrast guidelines for accessibility
+
+#### 3. Dark Theme Considerations
+- All colors in `AppColors` work for both light and dark themes
+- Use `ThemeExtension` only when colors need to adapt between themes
+- Test color combinations in both light and dark modes
+
+#### 4. Common Patterns
+
+**Container with Primary Color:**
+```dart
+Container(
+  decoration: BoxDecoration(
+    color: AppColors.primary,
+    borderRadius: BorderRadius.circular(12),
+  ),
+  child: Text('Button', style: TextStyle(color: Colors.white)),
+)
+```
+
+**Status Indicator:**
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  decoration: BoxDecoration(
+    color: AppColors.success.withValues(alpha: 0.1),
+    borderRadius: BorderRadius.circular(8),
+  ),
+  child: Text(
+    'Active',
+    style: TextStyle(color: AppColors.success, fontSize: 12),
+  ),
+)
+```
+
+**Card with Shadow:**
+```dart
+Card(
+  elevation: 0,
+  color: AppColors.surface,
+  shadowColor: AppColors.shadow,
+  child: content,
+)
+```
+
+This centralized color system ensures consistency across the app while maintaining optimal performance and easy maintenance.
+
 This guideline provides a comprehensive blueprint for building scalable Flutter applications with clean architecture, proper state management, and maintainable code patterns. Follow these patterns consistently to ensure your app remains maintainable and extensible as it grows.
