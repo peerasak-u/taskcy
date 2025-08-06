@@ -23,6 +23,21 @@ class TaskListCubit extends Cubit<TaskListState> {
     }
   }
 
+  void toggleTaskType() {
+    final currentState = state;
+    if (currentState is TaskListLoaded) {
+      final newTaskType = currentState.taskType == 'today' ? 'monthly' : 'today';
+      final newViewMode = newTaskType == 'today' 
+          ? TaskListViewMode.timeline 
+          : TaskListViewMode.calendar;
+      
+      emit(currentState.copyWith(
+        taskType: newTaskType,
+        viewMode: newViewMode,
+      ));
+    }
+  }
+
   void selectDate(DateTime date) {
     final currentState = state;
     if (currentState is TaskListLoaded) {

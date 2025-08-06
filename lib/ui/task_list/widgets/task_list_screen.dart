@@ -101,7 +101,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () => context.read<TaskListCubit>().toggleViewMode(),
+            onTap: () => context.read<TaskListCubit>().toggleTaskType(),
             child: Container(
               width: 48,
               height: 48,
