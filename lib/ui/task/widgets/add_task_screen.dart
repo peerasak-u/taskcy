@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../../domain/models/project.dart';
 import '../../../domain/models/user.dart';
+import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
-import '../cubit/add_task_cubit.dart';
+import '../bloc/add_task_bloc.dart';
+import '../bloc/add_task_event.dart';
 import '../cubit/add_task_state.dart';
+import '../view_model/add_task_form_model.dart';
+import 'project_selector_widget.dart';
+import 'description_field_widget.dart';
 import 'team_member_selector.dart';
 import 'date_picker_field.dart';
 import 'time_picker_fields.dart';
 import 'board_status_selector.dart';
 
-class AddTaskScreen extends StatelessWidget {
+class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
 
   static Future<void> show(BuildContext context) {
@@ -20,10 +25,7 @@ class AddTaskScreen extends StatelessWidget {
       barrierDismissible: true,
       barrierLabel: '',
       pageBuilder: (context, animation, secondaryAnimation) {
-        return BlocProvider(
-          create: (_) => AddTaskCubit(),
-          child: const AddTaskScreen(),
-        );
+        return const AddTaskScreen();
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(0.0, 1.0);
@@ -44,8 +46,41 @@ class AddTaskScreen extends StatelessWidget {
   }
 
   @override
+  State<AddTaskScreen> createState() => _AddTaskScreenState();
+}
+
+class _AddTaskScreenState extends State<AddTaskScreen> {
+  final TextEditingController _taskNameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load initial data when the screen is created
+    context.read<AddTaskBloc>().add(const LoadInitialData());
+  }
+
+  @override
+  void dispose() {
+    _taskNameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _syncControllersWithState(AddTaskFormModel formModel) {
+    // Update controllers only if the text differs to avoid cursor position issues
+    if (_taskNameController.text != formModel.taskName) {
+      _taskNameController.text = formModel.taskName;
+    }
+    if (_descriptionController.text != formModel.description) {
+      _descriptionController.text = formModel.description;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<AddTaskCubit, AddTaskState>(
+
+    return BlocListener<AddTaskBloc, AddTaskState>(
       listener: (context, state) {
         if (state is AddTaskSuccess) {
           Navigator.of(context).pop();
@@ -55,10 +90,17 @@ class AddTaskScreen extends StatelessWidget {
               backgroundColor: AppColors.green,
             ),
           );
-        } else if (state is AddTaskError) {
+        } else if (state is AddTaskFailed) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
+              backgroundColor: AppColors.orange,
+            ),
+          );
+        } else if (state is AddTaskInvalidate) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
               backgroundColor: AppColors.orange,
             ),
           );
@@ -76,123 +118,144 @@ class AddTaskScreen extends StatelessWidget {
             ),
           ),
         ),
-        body: const SafeArea(
+        body: SafeArea(
           top: false,
-          child: _AddTaskForm(),
+          child: BlocBuilder<AddTaskBloc, AddTaskState>(
+            builder: (context, state) {
+              if (state is AddTaskInitial || state is AddTaskLoading) {
+                return _buildLoadingState();
+              } else if (state is AddTaskReady || state is AddTaskInvalidate || state is AddTaskSubmitting || state is AddTaskFailed) {
+                // Sync controllers with current state
+                late final AddTaskFormModel formModel;
+                if (state is AddTaskReady) {
+                  formModel = state.formModel;
+                } else if (state is AddTaskInvalidate) {
+                  formModel = state.formModel;
+                } else if (state is AddTaskSubmitting) {
+                  formModel = state.formModel;
+                } else if (state is AddTaskFailed) {
+                  formModel = state.formModel;
+                }
+                _syncControllersWithState(formModel);
+                
+                return _buildFormState(context, state);
+              }
+              return _buildLoadingState();
+            },
+          ),
         ),
       ),
     );
   }
 
-}
-
-class _AddTaskForm extends StatefulWidget {
-  const _AddTaskForm();
-
-  @override
-  State<_AddTaskForm> createState() => _AddTaskFormState();
-}
-
-class _AddTaskFormState extends State<_AddTaskForm> {
-  final _taskNameController = TextEditingController();
-  final _mockUsers = [
-    User(
-      id: '1',
-      email: 'jeny@example.com',
-      fullName: 'Jeny',
-      avatarUrl: 'https://example.com/jeny.jpg',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    User(
-      id: '2',
-      email: 'mehrin@example.com',
-      fullName: 'mehrin',
-      avatarUrl: 'https://example.com/mehrin.jpg',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    User(
-      id: '3',
-      email: 'avishek@example.com',
-      fullName: 'Avishek',
-      avatarUrl: 'https://example.com/avishek.jpg',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    User(
-      id: '4',
-      email: 'jafor@example.com',
-      fullName: 'Jafor',
-      avatarUrl: 'https://example.com/jafor.jpg',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
-
-  @override
-  void dispose() {
-    _taskNameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AddTaskCubit, AddTaskState>(
-      builder: (context, state) {
-        final cubit = context.read<AddTaskCubit>();
-        final formModel = cubit.formModel;
-        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-        
-        return SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(context).padding.bottom + 24 + keyboardHeight,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTaskNameField(cubit),
-              const SizedBox(height: 32),
-              TeamMemberSelector(
-                availableMembers: _mockUsers,
-                selectedMembers: formModel.selectedMembers,
-                onMemberToggle: cubit.toggleTeamMember,
-                onAddMember: _handleAddMember,
-              ),
-              const SizedBox(height: 32),
-              DatePickerField(
-                label: 'Date',
-                selectedDate: formModel.selectedDate,
-                onDateSelected: cubit.updateSelectedDate,
-              ),
-              const SizedBox(height: 32),
-              TimePickerFields(
-                startTime: formModel.startTime,
-                endTime: formModel.endTime,
-                onStartTimeChanged: cubit.updateStartTime,
-                onEndTimeChanged: cubit.updateEndTime,
-              ),
-              const SizedBox(height: 32),
-              BoardStatusSelector(
-                selectedStatus: formModel.boardStatus,
-                onStatusChanged: cubit.updateBoardStatus,
-              ),
-              const SizedBox(height: 48),
-              _buildSaveButton(context, state, cubit),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primary,
+      ),
     );
   }
 
-  Widget _buildTaskNameField(AddTaskCubit cubit) {
+  Widget _buildFormState(BuildContext context, AddTaskState state) {
+    late final AddTaskFormModel formModel;
+    late final List<Project> availableProjects;
+    late final List<User> availableUsers;
+    bool isSubmitting = false;
+
+    if (state is AddTaskReady) {
+      formModel = state.formModel;
+      availableProjects = state.availableProjects;
+      availableUsers = state.availableUsers;
+    } else if (state is AddTaskInvalidate) {
+      formModel = state.formModel;
+      availableProjects = state.availableProjects;
+      availableUsers = state.availableUsers;
+    } else if (state is AddTaskSubmitting) {
+      formModel = state.formModel;
+      availableProjects = state.availableProjects;
+      availableUsers = state.availableUsers;
+      isSubmitting = true;
+    } else if (state is AddTaskFailed) {
+      formModel = state.formModel;
+      availableProjects = state.availableProjects;
+      availableUsers = state.availableUsers;
+    }
+
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).padding.bottom + 24 + keyboardHeight,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTaskNameField(context),
+          const SizedBox(height: 32),
+          ProjectSelectorWidget(
+            availableProjects: availableProjects,
+            selectedProject: formModel.selectedProject,
+            onProjectSelected: (project) {
+              context.read<AddTaskBloc>().add(SelectProject(project));
+            },
+          ),
+          const SizedBox(height: 32),
+          DescriptionFieldWidget(
+            controller: _descriptionController,
+            description: formModel.description,
+            onDescriptionChanged: (description) {
+              context.read<AddTaskBloc>().add(UpdateDescription(description));
+            },
+          ),
+          const SizedBox(height: 32),
+          TeamMemberSelector(
+            availableMembers: availableUsers,
+            selectedMembers: formModel.selectedMembers,
+            onMemberToggle: (user) {
+              context.read<AddTaskBloc>().add(ToggleTeamMember(user));
+            },
+            onAddMember: _handleAddMember,
+          ),
+          const SizedBox(height: 32),
+          DatePickerField(
+            label: 'Date',
+            selectedDate: formModel.selectedDate,
+            onDateSelected: (date) {
+              context.read<AddTaskBloc>().add(UpdateSelectedDate(date));
+            },
+          ),
+          const SizedBox(height: 32),
+          TimePickerFields(
+            startTime: formModel.startTime,
+            endTime: formModel.endTime,
+            onStartTimeChanged: (time) {
+              context.read<AddTaskBloc>().add(UpdateStartTime(time));
+            },
+            onEndTimeChanged: (time) {
+              context.read<AddTaskBloc>().add(UpdateEndTime(time));
+            },
+          ),
+          const SizedBox(height: 32),
+          BoardStatusSelector(
+            selectedStatus: formModel.boardStatus,
+            onStatusChanged: (status) {
+              context.read<AddTaskBloc>().add(UpdateBoardStatus(status));
+            },
+          ),
+          const SizedBox(height: 48),
+          _buildSaveButton(context, isSubmitting),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskNameField(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,7 +270,9 @@ class _AddTaskFormState extends State<_AddTaskForm> {
         const SizedBox(height: 12),
         TextField(
           controller: _taskNameController,
-          onChanged: cubit.updateTaskName,
+          onChanged: (value) {
+            context.read<AddTaskBloc>().add(UpdateTaskName(value));
+          },
           maxLines: 1,
           textInputAction: TextInputAction.next,
           style: const TextStyle(
@@ -241,14 +306,14 @@ class _AddTaskFormState extends State<_AddTaskForm> {
     );
   }
 
-  Widget _buildSaveButton(BuildContext context, AddTaskState state, AddTaskCubit cubit) {
-    final isLoading = state is AddTaskLoading;
-    
+  Widget _buildSaveButton(BuildContext context, bool isSubmitting) {
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: isLoading ? null : () => cubit.createTask(),
+        onPressed: isSubmitting 
+          ? null 
+          : () => context.read<AddTaskBloc>().add(const SubmitTask()),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.background,
@@ -257,7 +322,7 @@ class _AddTaskFormState extends State<_AddTaskForm> {
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: isLoading
+        child: isSubmitting
           ? const SizedBox(
               width: 24,
               height: 24,
