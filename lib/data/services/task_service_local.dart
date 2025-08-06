@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/models/task.dart';
+import '../../domain/models/user.dart';
+import 'user_service_local.dart';
 
 class TaskServiceLocal {
   static List<Task>? _tasks;
   static int _taskCounter = 20;
+  final UserServiceLocal _userService = UserServiceLocal();
 
   Future<List<Task>> getTasks() async {
-    _tasks ??= _seedInitialTasks();
+    _tasks ??= await _seedInitialTasks();
     return List<Task>.from(_tasks!);
   }
 
@@ -26,7 +29,7 @@ class TaskServiceLocal {
 
   Future<List<Task>> getTasksByAssignee(String assigneeId) async {
     final tasks = await getTasks();
-    return tasks.where((task) => task.assigneeId == assigneeId).toList();
+    return tasks.where((task) => task.assignees.any((user) => user.id == assigneeId)).toList();
   }
 
   Future<List<Task>> searchTasks(String query) async {
@@ -50,7 +53,7 @@ class TaskServiceLocal {
   }
 
   Future<Task> saveTask(Task task) async {
-    _tasks ??= _seedInitialTasks();
+    _tasks ??= await _seedInitialTasks();
     final existingIndex = _tasks!.indexWhere((t) => t.id == task.id);
     
     if (existingIndex != -1) {
@@ -68,11 +71,20 @@ class TaskServiceLocal {
     required TaskStatus status,
     required TaskPriority priority,
     required String projectId,
-    String? assigneeId,
+    List<String> assigneeIds = const [],
     DateTime? dueDate,
   }) async {
     final id = _generateId();
     final now = DateTime.now();
+    
+    // Get assignee users by IDs
+    final assignees = <User>[];
+    for (final assigneeId in assigneeIds) {
+      final user = await _userService.getUserById(assigneeId);
+      if (user != null) {
+        assignees.add(user);
+      }
+    }
     
     final task = Task(
       id: id,
@@ -81,7 +93,7 @@ class TaskServiceLocal {
       status: status,
       priority: priority,
       projectId: projectId,
-      assigneeId: assigneeId,
+      assignees: assignees,
       dueDate: dueDate,
       createdAt: now,
       updatedAt: now,
@@ -91,6 +103,7 @@ class TaskServiceLocal {
     debugPrint('🔥 Task title: $title');
     debugPrint('🔥 Task dueDate: $dueDate');
     debugPrint('🔥 Task projectId: $projectId');
+    debugPrint('🔥 Task assignees: ${assignees.map((u) => u.fullName).join(', ')}');
     
     final savedTask = await saveTask(task);
     
@@ -106,22 +119,36 @@ class TaskServiceLocal {
     String? description,
     TaskStatus? status,
     TaskPriority? priority,
-    String? assigneeId,
+    List<String>? assigneeIds,
     DateTime? dueDate,
   }) async {
-    _tasks ??= _seedInitialTasks();
+    _tasks ??= await _seedInitialTasks();
     final taskIndex = _tasks!.indexWhere((task) => task.id == id);
     
     if (taskIndex == -1) {
       throw Exception('Task not found');
     }
+
+    final currentTask = _tasks![taskIndex];
+    var updatedAssignees = currentTask.assignees;
+
+    // If assigneeIds provided, get the corresponding User objects
+    if (assigneeIds != null) {
+      updatedAssignees = <User>[];
+      for (final assigneeId in assigneeIds) {
+        final user = await _userService.getUserById(assigneeId);
+        if (user != null) {
+          updatedAssignees.add(user);
+        }
+      }
+    }
     
-    final updatedTask = _tasks![taskIndex].copyWith(
+    final updatedTask = currentTask.copyWith(
       title: title,
       description: description,
       status: status,
       priority: priority,
-      assigneeId: assigneeId,
+      assignees: assigneeIds != null ? updatedAssignees : null,
       dueDate: dueDate,
       updatedAt: DateTime.now(),
     );
@@ -132,7 +159,7 @@ class TaskServiceLocal {
   }
 
   Future<void> deleteTask(String id) async {
-    _tasks ??= _seedInitialTasks();
+    _tasks ??= await _seedInitialTasks();
     _tasks!.removeWhere((task) => task.id == id);
   }
 
@@ -195,7 +222,14 @@ class TaskServiceLocal {
     return 'task_$_taskCounter';
   }
 
-  List<Task> _seedInitialTasks() {
+  Future<List<Task>> _seedInitialTasks() async {
+    final allUsers = await _userService.getUsers();
+    
+    // Helper function to get users by IDs
+    List<User> getUsersByIds(List<String> userIds) {
+      return userIds.map((id) => allUsers.firstWhere((user) => user.id == id)).toList();
+    }
+
     final now = DateTime.now();
     
     return [
@@ -207,7 +241,7 @@ class TaskServiceLocal {
         status: TaskStatus.completed,
         priority: TaskPriority.high,
         projectId: 'project_axentech',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.subtract(const Duration(days: 3)),
         createdAt: now.subtract(const Duration(days: 25)),
         updatedAt: now.subtract(const Duration(days: 3)),
@@ -219,7 +253,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.high,
         projectId: 'project_axentech',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: DateTime(now.year, now.month, now.day, 9, 0), // Today at 9:00 AM
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(hours: 2)),
@@ -231,7 +265,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_axentech',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude']),
         dueDate: now.add(const Duration(days: 3)),
         createdAt: now.subtract(const Duration(days: 2)),
         updatedAt: now.subtract(const Duration(days: 2)),
@@ -243,7 +277,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.high,
         projectId: 'project_axentech',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: DateTime(now.year, now.month, now.day, 12, 0), // Today at 12:00 PM
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(minutes: 30)),
@@ -255,13 +289,13 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_axentech',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude']),
         dueDate: now.add(const Duration(days: 9)),
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
       ),
 
-      // Pygmy Migration Tasks (6 tasks)
+      // Pygmy Migration Tasks (6 tasks) - Some with multiple assignees
       Task(
         id: 'task_pygmy_1',
         title: 'Setup new Flutter project with guidelines',
@@ -269,7 +303,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.urgent,
         projectId: 'project_pygmy',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 2)), // Due Aug 8
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(hours: 1)),
@@ -281,7 +315,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.high,
         projectId: 'project_pygmy',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude', 'user_peerasak']), // Multiple assignees
         dueDate: now.add(const Duration(days: 14)), // Aug 20 (overdue simulation)
         createdAt: now.subtract(const Duration(days: 15)),
         updatedAt: now.subtract(const Duration(days: 1)),
@@ -293,7 +327,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.high,
         projectId: 'project_pygmy',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 19)), // Aug 25
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
@@ -305,7 +339,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_pygmy',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude']),
         dueDate: now.add(const Duration(days: 12)), // Aug 18
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
@@ -317,7 +351,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.high,
         projectId: 'project_pygmy',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 40)), // Sep 15
         createdAt: now.subtract(const Duration(days: 3)),
         updatedAt: now.subtract(const Duration(days: 3)),
@@ -329,13 +363,13 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_pygmy',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude']),
         dueDate: now.add(const Duration(days: 56)), // Oct 1
         createdAt: now.subtract(const Duration(days: 2)),
         updatedAt: now.subtract(const Duration(days: 2)),
       ),
 
-      // Brand Identity Campaign Tasks (6 tasks)
+      // Brand Identity Campaign Tasks (6 tasks) - Multiple team members
       Task(
         id: 'task_brand_1',
         title: 'Market research and competitor analysis',
@@ -343,7 +377,7 @@ class TaskServiceLocal {
         status: TaskStatus.completed,
         priority: TaskPriority.high,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_sarah',
+        assignees: getUsersByIds(['user_sarah']),
         dueDate: now.subtract(const Duration(days: 9)), // July 28
         createdAt: now.subtract(const Duration(days: 55)),
         updatedAt: now.subtract(const Duration(days: 9)),
@@ -355,7 +389,7 @@ class TaskServiceLocal {
         status: TaskStatus.completed,
         priority: TaskPriority.high,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_alex',
+        assignees: getUsersByIds(['user_alex']),
         dueDate: now.subtract(const Duration(days: 5)), // Aug 1
         createdAt: now.subtract(const Duration(days: 35)),
         updatedAt: now.subtract(const Duration(days: 5)),
@@ -367,7 +401,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.high,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_alex',
+        assignees: getUsersByIds(['user_alex', 'user_sarah']), // Multiple assignees
         dueDate: now.add(const Duration(days: 2)), // Aug 8
         createdAt: now.subtract(const Duration(days: 15)),
         updatedAt: now.subtract(const Duration(minutes: 45)),
@@ -379,7 +413,7 @@ class TaskServiceLocal {
         status: TaskStatus.completed,
         priority: TaskPriority.medium,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_sarah',
+        assignees: getUsersByIds(['user_sarah']),
         dueDate: now.subtract(const Duration(days: 2)), // Aug 4
         createdAt: now.subtract(const Duration(days: 20)),
         updatedAt: now.subtract(const Duration(days: 2)),
@@ -391,7 +425,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.urgent,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_sarah',
+        assignees: getUsersByIds(['user_sarah']),
         dueDate: DateTime(now.year, now.month, now.day, 15, 0), // Today at 3:00 PM
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(minutes: 20)),
@@ -403,7 +437,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_sarah',
+        assignees: getUsersByIds(['user_sarah']),
         dueDate: now.add(const Duration(days: 19)), // Aug 25
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
@@ -417,7 +451,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.low,
         projectId: 'project_personal_tools',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 4)), // Aug 10
         createdAt: now, // Started today
         updatedAt: now.subtract(const Duration(minutes: 10)),
@@ -429,7 +463,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.low,
         projectId: 'project_personal_tools',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 12)), // Aug 18
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
@@ -441,7 +475,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_personal_tools',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: now.add(const Duration(days: 26)), // Sep 1
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
@@ -455,7 +489,7 @@ class TaskServiceLocal {
         status: TaskStatus.inProgress,
         priority: TaskPriority.high,
         projectId: 'project_axentech',
-        assigneeId: 'user_peerasak',
+        assignees: getUsersByIds(['user_peerasak']),
         dueDate: DateTime(now.year, now.month, now.day, 10, 0), // 10:00 AM - 11:30 AM (1.5 hours)
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(hours: 1)),
@@ -468,7 +502,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.medium,
         projectId: 'project_axentech',
-        assigneeId: 'user_claude',
+        assignees: getUsersByIds(['user_claude']),
         dueDate: DateTime(now.year, now.month, now.day, 13, 0), // 1:00 PM - 2:00 PM (1 hour)
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
@@ -481,7 +515,7 @@ class TaskServiceLocal {
         status: TaskStatus.todo,
         priority: TaskPriority.urgent,
         projectId: 'project_brand_identity',
-        assigneeId: 'user_alex',
+        assignees: getUsersByIds(['user_alex', 'user_sarah', 'user_peerasak']), // Team meeting - multiple assignees
         dueDate: DateTime(now.year, now.month, now.day, 16, 0), // 4:00 PM - 4:30 PM (30 min meeting)
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),

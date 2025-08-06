@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import 'user_avatar_stack_widget.dart';
+import '../../shared/widgets/user_avatar_stack_widget.dart';
 import 'progress_bar_widget.dart';
 
 class ProjectCardWidget extends StatelessWidget {

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'user.dart';
+
 enum TaskStatus { todo, inProgress, completed }
 
 enum TaskPriority { low, medium, high, urgent }
@@ -11,7 +13,7 @@ class Task extends Equatable {
   final TaskStatus status;
   final TaskPriority priority;
   final String projectId;
-  final String? assigneeId;
+  final List<User> assignees;
   final DateTime? dueDate;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -23,7 +25,7 @@ class Task extends Equatable {
     required this.status,
     required this.priority,
     required this.projectId,
-    this.assigneeId,
+    required this.assignees,
     this.dueDate,
     required this.createdAt,
     required this.updatedAt,
@@ -36,7 +38,7 @@ class Task extends Equatable {
     TaskStatus? status,
     TaskPriority? priority,
     String? projectId,
-    String? assigneeId,
+    List<User>? assignees,
     DateTime? dueDate,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -48,7 +50,7 @@ class Task extends Equatable {
       status: status ?? this.status,
       priority: priority ?? this.priority,
       projectId: projectId ?? this.projectId,
-      assigneeId: assigneeId ?? this.assigneeId,
+      assignees: assignees ?? this.assignees,
       dueDate: dueDate ?? this.dueDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -60,7 +62,7 @@ class Task extends Equatable {
     return DateTime.now().isAfter(dueDate!);
   }
 
-  bool get isAssigned => assigneeId != null;
+  bool get isAssigned => assignees.isNotEmpty;
 
   @override
   List<Object?> get props => [
@@ -70,7 +72,7 @@ class Task extends Equatable {
         status,
         priority,
         projectId,
-        assigneeId,
+        assignees,
         dueDate,
         createdAt,
         updatedAt,

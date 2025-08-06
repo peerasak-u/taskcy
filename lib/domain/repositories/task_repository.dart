@@ -18,7 +18,7 @@ abstract class TaskRepository {
     required TaskStatus status,
     required TaskPriority priority,
     required String projectId,
-    String? assigneeId,
+    List<String> assigneeIds = const [],
     DateTime? dueDate,
   });
 
@@ -28,7 +28,7 @@ abstract class TaskRepository {
     String? description,
     TaskStatus? status,
     TaskPriority? priority,
-    String? assigneeId,
+    List<String>? assigneeIds,
     DateTime? dueDate,
   });
 

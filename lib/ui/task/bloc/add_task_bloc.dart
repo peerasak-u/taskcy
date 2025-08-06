@@ -176,7 +176,7 @@ class AddTaskBloc extends Bloc<AddTaskEvent, AddTaskState> {
         status: task.status,
         priority: task.priority,
         projectId: task.projectId,
-        assigneeId: task.assigneeId,
+        assigneeIds: task.assignees.map((user) => user.id).toList(),
         dueDate: task.dueDate,
       );
       

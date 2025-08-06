@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../home/widgets/progress_bar_widget.dart';
-import '../../home/widgets/user_avatar_stack_widget.dart';
+import '../../shared/widgets/user_avatar_stack_widget.dart';
 import '../view_model/projects_view_model.dart';
 
 class ProjectListItemWidget extends StatelessWidget {

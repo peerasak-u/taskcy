@@ -71,7 +71,7 @@ class TaskRepositoryLocal implements TaskRepository {
     required TaskStatus status,
     required TaskPriority priority,
     required String projectId,
-    String? assigneeId,
+    List<String> assigneeIds = const [],
     DateTime? dueDate,
   }) async {
     // Simulate API call
@@ -83,7 +83,7 @@ class TaskRepositoryLocal implements TaskRepository {
       status: status,
       priority: priority,
       projectId: projectId,
-      assigneeId: assigneeId,
+      assigneeIds: assigneeIds,
       dueDate: dueDate,
     );
   }
@@ -95,7 +95,7 @@ class TaskRepositoryLocal implements TaskRepository {
     String? description,
     TaskStatus? status,
     TaskPriority? priority,
-    String? assigneeId,
+    List<String>? assigneeIds,
     DateTime? dueDate,
   }) async {
     // Simulate API call
@@ -107,7 +107,7 @@ class TaskRepositoryLocal implements TaskRepository {
       description: description,
       status: status,
       priority: priority,
-      assigneeId: assigneeId,
+      assigneeIds: assigneeIds,
       dueDate: dueDate,
     );
   }

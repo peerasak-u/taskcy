@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../domain/models/task.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
+import '../../shared/widgets/user_avatar_stack_widget.dart';
 import '../cubit/task_list_cubit.dart';
 import '../cubit/task_list_state.dart';
 
@@ -477,17 +478,12 @@ class _AbsoluteTimelineTaskCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Placeholder avatars
-              Row(
-                children: [
-                  _buildAvatar('P', Colors.purple.shade300),
-                  const SizedBox(width: 4),
-                  _buildAvatar('C', Colors.green.shade300),
-                  if (timelineTask.task.priority == TaskPriority.urgent) ...[
-                    const SizedBox(width: 4),
-                    _buildAvatar('S', Colors.pink.shade300),
-                  ],
-                ],
+              // Real user avatars from task assignees
+              UserAvatarStackWidget(
+                avatarUrls: timelineTask.task.assignees.map((user) => user.avatarUrl ?? '').toList(),
+                size: 20,
+                maxVisible: 3,
+                overlapFactor: 0.3,
               ),
               Flexible(
                 child: Text(
@@ -506,26 +502,6 @@ class _AbsoluteTimelineTaskCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(String initial, Color color) {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          initial,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _CalendarViewWidget extends StatelessWidget {

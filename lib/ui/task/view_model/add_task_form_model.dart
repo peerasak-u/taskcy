@@ -87,7 +87,7 @@ class AddTaskFormModel extends Equatable {
       status: _mapBoardStatusToTaskStatus(boardStatus),
       priority: _mapBoardStatusToTaskPriority(boardStatus),
       projectId: selectedProject?.id ?? '',
-      assigneeId: selectedMembers.isNotEmpty ? selectedMembers.first.id : null,
+      assignees: selectedMembers,
       dueDate: finalDueDate,
       createdAt: now,
       updatedAt: now,
