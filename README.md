@@ -1,9 +1,5 @@
 # Taskcy - Flutter Project Management App
 
-<p align="center">
-  <img src="ui-design/Home.png" alt="Taskcy App" width="300"/>
-</p>
-
 **Taskcy** is a modern, feature-rich Flutter project management application with a JIRA-like interface but with a more friendly and intuitive UI. Built with Clean Architecture principles, it demonstrates professional Flutter development practices and modern state management patterns.
 
 ## 🎯 Project Status
@@ -38,7 +34,6 @@ graph TB
     subgraph "Domain Layer"
         D[Business Models]
         E[Repository Interfaces]
-        F[Use Cases]
     end
     
     subgraph "Data Layer"
@@ -49,7 +44,7 @@ graph TB
     
     A --> B
     B --> C
-    C --> E
+    B --> E
     E --> G
     G --> H
     H --> I
@@ -158,24 +153,28 @@ Icon(Icons.check_circle, color: AppColors.success)
 - `ThemeCubit`: Theme switching
 - `TaskListCubit`: Basic list operations
 
-## 📱 Screen Showcase
+## 📱 Available Screens
 
-<details>
-<summary>View All App Screens</summary>
+The app includes comprehensive UI designs for all major features:
 
-| Home & Dashboard | Projects | Task Management |
-|------------------|----------|-----------------|
-| ![Home](ui-design/Home.png) | ![Projects](ui-design/Projects.png) | ![Add Task](ui-design/Add%20Task.png) |
+**Main Application Screens:**
+- Home Dashboard with task overview and progress tracking
+- Project management with filtering and organization
+- Task creation and management forms
+- Team chat and communication interface
+- User profile and settings management
 
-| Authentication | Onboarding | Profile |
-|----------------|------------|---------|
-| ![Sign In](ui-design/Signin.png) | ![Onboarding](ui-design/Onboard%201.png) | ![Profile](ui-design/Profile.png) |
+**Authentication & Onboarding:**
+- Multi-step onboarding flow (4 screens)
+- Sign in and sign up forms
+- User authentication state management
 
-| Chat | Settings | Task Details |
-|------|----------|-------------|
-| ![Chat](ui-design/Chat.png) | ![Settings](ui-design/Settings.png) | ![Task Details](ui-design/Today%20Task%20Details.png) |
-
-</details>
+**Additional Features:**
+- Task detail views with status management
+- Monthly task calendar view
+- Team creation and management
+- Profile editing and language settings
+- Search functionality across all modules
 
 ## 🚀 Getting Started
 
