@@ -9,6 +9,10 @@
 **UI/UX**: Complete design system with 21+ screen mockups  
 **State Management**: BLoC/Cubit pattern with comprehensive implementation
 
+## 🎥 Demo Video
+
+Check out the app in action: [Taskcy Demo](https://youtube.com/shorts/Udrh3w1QX4o)
+
 ## ✨ Key Features
 
 - 📊 **Task Management**: Create, assign, and track tasks with status updates
