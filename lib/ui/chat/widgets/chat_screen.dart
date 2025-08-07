@@ -12,35 +12,27 @@ import '../bloc/chat_state.dart';
 import 'chat_item_widget.dart';
 import 'chat_search_field.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends StatelessWidget {
   final TextEditingController searchController;
   
   const ChatScreen({super.key, required this.searchController});
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Load chats when screen is built
-    context.read<ChatBloc>().add(const LoadChats());
-  }
-
   void _onSearchChanged(BuildContext context) {
-    final query = widget.searchController.text.trim();
+    final query = searchController.text.trim();
     context.read<ChatBloc>().add(SearchChats(query: query));
   }
 
   void _onSearchClear(BuildContext context) {
-    widget.searchController.clear();
+    searchController.clear();
     context.read<ChatBloc>().add(const LoadChats());
   }
 
   @override
   Widget build(BuildContext context) {
+    // Load chats after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatBloc>().add(const LoadChats());
+    });
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -54,7 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
             ChatSearchField(
-              controller: widget.searchController,
+              controller: searchController,
               onChanged: (value) => _onSearchChanged(context),
               onClear: () => _onSearchClear(context),
             ),

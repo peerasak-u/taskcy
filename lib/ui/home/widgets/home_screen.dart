@@ -17,22 +17,15 @@ import 'project_card_widget.dart';
 import 'section_header_widget.dart';
 import 'task_item_widget.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<HomeBloc>().add(const LoadHomeData());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Load home data after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeBloc>().add(const LoadHomeData());
+    });
     final currentDate = DateFormat('EEEE, d').format(DateTime.now());
 
     return Scaffold(

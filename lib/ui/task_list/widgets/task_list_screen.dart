@@ -11,7 +11,7 @@ import '../../shared/widgets/user_avatar_stack_widget.dart';
 import '../cubit/task_list_cubit.dart';
 import '../cubit/task_list_state.dart';
 
-class TaskListScreen extends StatefulWidget {
+class TaskListScreen extends StatelessWidget {
   final String taskType;
   
   const TaskListScreen({
@@ -20,18 +20,11 @@ class TaskListScreen extends StatefulWidget {
   });
 
   @override
-  State<TaskListScreen> createState() => _TaskListScreenState();
-}
-
-class _TaskListScreenState extends State<TaskListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<TaskListCubit>().initialize(taskType: widget.taskType);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Initialize task list after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TaskListCubit>().initialize(taskType: taskType);
+    });
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -40,13 +33,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
             if (state is TaskListLoaded) {
               return Column(
                 children: [
-                  _buildHeader(state),
-                  _buildDateSection(state),
-                  _buildDateStrip(state),
+                  _buildHeader(context, state),
+                  _buildDateSection(context, state),
+                  _buildDateStrip(context, state),
                   const SizedBox(height: 24),
                   Expanded(
                     child: state.taskListData.isLoading ? 
-                      const LoadingStateWidget() : _buildContent(state),
+                      const LoadingStateWidget() : _buildContent(context, state),
                   ),
                 ],
               );
@@ -58,7 +51,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget _buildHeader(TaskListLoaded state) {
+  Widget _buildHeader(BuildContext context, TaskListLoaded state) {
     final title = state.taskListData.taskType == 'today' ? 'Today Task' : 'Monthly Task';
     
     return HeaderWidget(
@@ -70,7 +63,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget _buildDateSection(TaskListLoaded state) {
+  Widget _buildDateSection(BuildContext context, TaskListLoaded state) {
     final formattedDate = DateFormat('MMMM, d').format(state.taskListData.selectedDate);
     final taskCount = state.taskListData.taskType == 'today' 
         ? state.taskListData.totalTasksToday 
@@ -130,7 +123,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget _buildDateStrip(TaskListLoaded state) {
+  Widget _buildDateStrip(BuildContext context, TaskListLoaded state) {
     return Container(
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -143,7 +136,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  Widget _buildContent(TaskListLoaded state) {
+  Widget _buildContent(BuildContext context, TaskListLoaded state) {
     if (state.taskListData.viewMode == TaskListViewMode.timeline) {
       return _TimelineViewWidget(
         selectedDate: state.taskListData.selectedDate,

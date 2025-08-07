@@ -14,25 +14,17 @@ import 'project_filter_tabs_widget.dart';
 import 'project_list_item_widget.dart';
 import 'project_search_widget.dart';
 
-class ProjectScreen extends StatefulWidget {
+class ProjectScreen extends StatelessWidget {
   final TextEditingController searchController;
   
   const ProjectScreen({super.key, required this.searchController});
 
   @override
-  State<ProjectScreen> createState() => _ProjectScreenState();
-}
-
-class _ProjectScreenState extends State<ProjectScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Initialize projects data when screen is built
-    context.read<ProjectsBloc>().add(const LoadProjectsRequested());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Initialize projects data after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProjectsBloc>().add(const LoadProjectsRequested());
+    });
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -47,7 +39,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
             ),
             const SizedBox(height: 16),
             ProjectSearchWidget(
-              controller: widget.searchController,
+              controller: searchController,
               onChanged: (query) {
                 context.read<ProjectsBloc>().add(ProjectSearchUpdated(searchQuery: query));
               },
