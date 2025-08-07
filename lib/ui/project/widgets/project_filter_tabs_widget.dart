@@ -75,7 +75,11 @@ class ProjectFilterTabsWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
+          color: Colors.transparent,
+          border: isSelected ? Border.all(
+            color: AppColors.primary,
+            width: 1,
+          ) : null,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
@@ -83,7 +87,7 @@ class ProjectFilterTabsWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? AppColors.primary : AppColors.textSecondary,
           ),
         ),
       ),
