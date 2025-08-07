@@ -20,17 +20,13 @@ class HeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 0),
       child: Row(
         children: [
           if (leftIcon != null)
             IconButton(
               onPressed: onLeftTap,
-              icon: Icon(
-                leftIcon!,
-                color: AppColors.textPrimary,
-                size: 24,
-              ),
+              icon: Icon(leftIcon!, color: AppColors.textPrimary, size: 24),
               style: IconButton.styleFrom(
                 padding: const EdgeInsets.all(8.0),
                 shape: RoundedRectangleBorder(
@@ -55,11 +51,7 @@ class HeaderWidget extends StatelessWidget {
           if (rightIcon != null)
             IconButton(
               onPressed: onRightTap,
-              icon: Icon(
-                rightIcon!,
-                color: AppColors.textPrimary,
-                size: 24,
-              ),
+              icon: Icon(rightIcon!, color: AppColors.textPrimary, size: 24),
               style: IconButton.styleFrom(
                 padding: const EdgeInsets.all(8.0),
                 shape: RoundedRectangleBorder(

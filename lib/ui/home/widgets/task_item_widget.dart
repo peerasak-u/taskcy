@@ -22,59 +22,66 @@ class TaskItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    projectName,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+    return Container(
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.outline, width: 1),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      projectName,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    timeAgo,
-                    style: const TextStyle(
-                      color: AppColors.textLight,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+                    const SizedBox(height: 4),
+                    Text(
+                      timeAgo,
+                      style: const TextStyle(
+                        color: AppColors.textLight,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            CircularProgressWidget(
-              progress: progress,
-              size: 44,
-              strokeWidth: 3,
-              progressColor: progressColor,
-              backgroundColor: AppColors.surface,
-              textStyle: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              const SizedBox(width: 16),
+              CircularProgressWidget(
+                progress: progress,
+                size: 44,
+                strokeWidth: 3,
+                progressColor: progressColor,
+                backgroundColor: AppColors.surface,
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
