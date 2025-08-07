@@ -7,7 +7,7 @@
 **Current Stage**: Functional Prototype with Local Data Simulation  
 **Architecture**: Production-Ready Clean Architecture Implementation  
 **UI/UX**: Complete design system with 21+ screen mockups  
-**State Management**: BLoC/Cubit pattern with comprehensive implementation  
+**State Management**: BLoC/Cubit pattern with comprehensive implementation
 
 ## ✨ Key Features
 
@@ -30,25 +30,25 @@ graph TB
         B[BLoC/Cubit]
         C[View Models]
     end
-    
+
     subgraph "Domain Layer"
         D[Business Models]
         E[Repository Interfaces]
     end
-    
+
     subgraph "Data Layer"
         G[Repository Implementations]
         H[Local Services]
         I[Mock Data]
     end
-    
+
     A --> B
     B --> C
     B --> E
     E --> G
     G --> H
     H --> I
-    
+
     B --> D
     E --> D
     G --> D
@@ -65,28 +65,28 @@ graph TD
     B -->|Returning| D[Sign In]
     C --> D
     D --> E[Main Shell]
-    
+
     E --> F[Home Tab - Index 0]
-    E --> G[Project Tab - Index 1] 
+    E --> G[Project Tab - Index 1]
     E --> H[Add Modal - Index 2]
     E --> I[Chat Tab - Index 3]
     E --> J[Profile Tab - Index 4]
-    
+
     F --> F1[Today Tasks]
     F --> F2[Task Details]
     F --> F3[Monthly View]
-    
+
     G --> G1[All Projects]
     G --> G2[In Progress]
     G --> G3[Completed]
-    
+
     H --> H1[Add Task]
     H --> H2[Create Team]
     H --> H3[Create Project]
-    
+
     I --> I1[Team Chats]
     I --> I2[Direct Messages]
-    
+
     J --> J1[Profile Settings]
     J --> J2[Edit Profile]
     J --> J3[Language Settings]
@@ -124,13 +124,15 @@ lib/
 ## 🎨 Design System
 
 ### Color Palette
+
 - **Primary**: `#756EF3` (Purple) - Main brand color
-- **Secondary**: `#D1E2FE` (Light Blue) - Supporting elements  
+- **Secondary**: `#D1E2FE` (Light Blue) - Supporting elements
 - **Blue**: `#63B4FF` - Information and highlights
 - **Green**: `#B1D199` - Success states and completed tasks
 - **Orange**: `#FFB35A` - Warnings and pending states
 
 ### Theme Architecture
+
 ```dart
 // Centralized color system for optimal performance
 Container(color: AppColors.primary)
@@ -141,6 +143,7 @@ Icon(Icons.check_circle, color: AppColors.success)
 ## 🔧 State Management Strategy
 
 ### BLoC Pattern (Complex Business Logic)
+
 - `HomeBloc`: Dashboard data with async operations
 - `AddTaskBloc`: Task creation with validation
 - `ProjectsBloc`: Project management with filtering
@@ -148,6 +151,7 @@ Icon(Icons.check_circle, color: AppColors.success)
 - `ChatBloc`: Real-time chat functionality
 
 ### Cubit Pattern (Simple State)
+
 - `AuthCubit`: Authentication state
 - `NavigationCubit`: Tab navigation
 - `ThemeCubit`: Theme switching
@@ -158,6 +162,7 @@ Icon(Icons.check_circle, color: AppColors.success)
 The app includes comprehensive UI designs for all major features:
 
 **Main Application Screens:**
+
 - Home Dashboard with task overview and progress tracking
 - Project management with filtering and organization
 - Task creation and management forms
@@ -165,11 +170,13 @@ The app includes comprehensive UI designs for all major features:
 - User profile and settings management
 
 **Authentication & Onboarding:**
+
 - Multi-step onboarding flow (4 screens)
 - Sign in and sign up forms
 - User authentication state management
 
 **Additional Features:**
+
 - Task detail views with status management
 - Monthly task calendar view
 - Team creation and management
@@ -179,25 +186,29 @@ The app includes comprehensive UI designs for all major features:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Flutter SDK (^3.8.1)
-- Dart SDK  
+- Dart SDK
 - iOS Simulator / Android Emulator
 - IDE: VS Code, Android Studio, or IntelliJ
 
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/your-username/taskcy.git
 cd taskcy
 ```
 
 2. **Install dependencies**
+
 ```bash
 flutter pub get
 ```
 
 3. **Run the app**
+
 ```bash
 flutter run
 ```
@@ -207,7 +218,7 @@ flutter run
 ```bash
 # 🔄 Development
 flutter run                        # Launch app with hot reload
-flutter hot-reload                  # Trigger hot reload (or press 'r')  
+flutter hot-reload                  # Trigger hot reload (or press 'r')
 flutter hot-restart                 # Trigger hot restart (or press 'R')
 
 # 📦 Dependencies & Code Generation
@@ -229,21 +240,25 @@ flutter build web                   # Web version
 ## 📦 Dependencies
 
 ### Core Framework
+
 - **flutter_bloc** (^8.1.3) - State management with BLoC pattern
 - **go_router** (^14.2.7) - Declarative routing and navigation
 - **equatable** (^2.0.5) - Value equality for state objects
 
 ### Networking & Data
+
 - **http** (^1.1.0) - HTTP client for API calls
 - **json_annotation** (^4.8.1) - JSON serialization annotations
 - **shared_preferences** (^2.2.2) - Local data persistence
 
 ### UI & UX
+
 - **shimmer** (^3.0.0) - Loading state animations
 - **flutter_svg** (^2.0.9) - SVG image support
 - **intl** (^0.19.0) - Internationalization and date formatting
 
 ### Development Tools
+
 - **json_serializable** (^6.7.1) - Code generation for JSON
 - **build_runner** (^2.4.7) - Code generation runner
 - **bloc_test** (^9.1.0) - Testing utilities for BLoC
@@ -254,109 +269,54 @@ flutter build web                   # Web version
 This project demonstrates the following Flutter concepts:
 
 ### Advanced Patterns
+
 - ✅ **Clean Architecture** - Separation of concerns with clear boundaries
-- ✅ **BLoC Pattern** - Reactive state management for complex logic  
+- ✅ **BLoC Pattern** - Reactive state management for complex logic
 - ✅ **Repository Pattern** - Data access abstraction
 - ✅ **Dependency Injection** - Centralized provider configuration
 
 ### Modern Flutter Features
+
 - ✅ **GoRouter Navigation** - Type-safe routing with nested navigation
 - ✅ **StatefulShellRoute** - Persistent tab navigation
 - ✅ **Theme Extensions** - Custom color system
 - ✅ **Performance Optimization** - Const constructors and efficient rebuilds
 
 ### Development Best Practices
+
 - ✅ **Feature-based Architecture** - Modular code organization
 - ✅ **Error Handling** - Comprehensive error states and custom exceptions
-- ✅ **Testing Strategy** - Unit tests, widget tests, and BLoC tests
 - ✅ **Code Quality** - Linting, analysis, and conventions
 
 ## 🔍 Code Conventions
 
 ### Naming Conventions
+
 - **Files**: `snake_case.dart`
 - **Classes**: `PascalCase`
-- **Methods/Variables**: `camelCase` 
+- **Methods/Variables**: `camelCase`
 - **Constants**: `SCREAMING_SNAKE_CASE`
 
 ### Architecture Rules
+
 - **Domain Layer**: No external dependencies, pure business logic
 - **Data Layer**: Repository implementations, service integrations
 - **UI Layer**: Widgets, state management, view models
 
 ### Performance Guidelines
+
 - Use `const` constructors wherever possible
 - Implement `Equatable` for state objects
 - Use `AppColors` constants instead of theme lookups
 - Prefer `withValues()` over deprecated `withOpacity()`
 
-## 🧪 Testing Strategy
-
-```bash
-# Run all tests
-flutter test
-
-# Run specific test file
-flutter test test/domain/models/task_test.dart
-
-# Run tests with coverage
-flutter test --coverage
-```
-
-### Test Structure
-- **Unit Tests**: Domain models and business logic
-- **Widget Tests**: UI component behavior
-- **BLoC Tests**: State management and business flows
-- **Integration Tests**: End-to-end user workflows
-
 ## 🚀 Production Readiness
 
 ### ✅ Current Implementation
+
 - Complete Clean Architecture structure
 - Professional state management setup
 - Comprehensive UI component library
 - Rich mock data for all features
 - Modern navigation system
 - Theme system with light/dark mode
-
-### 🔄 Production Migration Path
-1. Replace local services with HTTP API clients
-2. Generate JSON serialization code (`dart run build_runner build`)
-3. Implement real authentication providers
-4. Add proper error handling for network operations  
-5. Configure CI/CD pipeline
-6. Add comprehensive test coverage
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the established code conventions
-4. Write tests for new functionality  
-5. Run `flutter analyze` and `flutter test`
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-## 📚 Resources
-
-- [Flutter Documentation](https://docs.flutter.dev/)
-- [BLoC Library Documentation](https://bloclibrary.dev/)
-- [GoRouter Documentation](https://pub.dev/packages/go_router)
-- [Clean Architecture Guide](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🌟 Acknowledgments
-
-- UI/UX Design inspiration from modern project management tools
-- Flutter community for excellent packages and resources
-- Clean Architecture principles by Robert C. Martin
-
----
-
-**Made with ❤️ and Flutter**
-
-*This project serves as a comprehensive example of professional Flutter development practices. Perfect for learning Clean Architecture, modern state management, and building production-ready mobile applications.*
