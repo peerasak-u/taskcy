@@ -39,7 +39,7 @@ class HomeProjectViewModel extends Equatable {
     return HomeProjectViewModel(
       id: project.id,
       title: project.name,
-      subtitle: _getProjectSubtitle(project.name),
+      subtitle: project.team.name,
       teamAvatars: teamAvatars,
       currentProgress: completedTasks,
       totalProgress: totalTasks > 0 ? totalTasks : 1,
@@ -64,18 +64,6 @@ class HomeProjectViewModel extends Equatable {
     }
   }
 
-  static String _getProjectSubtitle(String projectName) {
-    if (projectName.toLowerCase().contains('design')) {
-      return 'UI Design Kit';
-    } else if (projectName.toLowerCase().contains('banking')) {
-      return 'UI Design';
-    } else if (projectName.toLowerCase().contains('course')) {
-      return 'Landing Page';
-    } else if (projectName.toLowerCase().contains('commerce')) {
-      return 'E-commerce';
-    }
-    return 'Project';
-  }
 
   static List<String> _getTeamAvatars(List<User> members) {
     return members.map((user) => user.avatarUrl ?? '').where((url) => url.isNotEmpty).toList();

@@ -63,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   } else if (state is HomeError) {
                     return ErrorStateWidget(
                       message: state.message,
-                      onRetry: () => context.read<HomeBloc>().add(const LoadHomeData()),
+                      onRetry: () =>
+                          context.read<HomeBloc>().add(const LoadHomeData()),
                     );
                   }
                   return const LoadingStateWidget();
@@ -76,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   Widget _buildLoadedState(BuildContext context, HomeViewModel homeData) {
     return SingleChildScrollView(
       child: Column(
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
           if (homeData.projects.isNotEmpty) ...[
             SizedBox(
-              height: 200,
+              height: 150,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           if (homeData.inProgressTasks.isNotEmpty) ...[
             SectionHeaderWidget(
-              title: 'In Progress', 
+              title: 'In Progress',
               onTap: () => context.push('/home/task-list/today'),
             ),
             ...homeData.inProgressTasks.map(
@@ -128,5 +128,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }

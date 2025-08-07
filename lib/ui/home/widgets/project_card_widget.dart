@@ -46,6 +46,8 @@ class ProjectCardWidget extends StatelessWidget {
           children: [
             Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppColors.background,
                 fontSize: 18,
@@ -69,16 +71,17 @@ class ProjectCardWidget extends StatelessWidget {
                   size: 28,
                 ),
                 const Spacer(),
+                Expanded(
+                  child: ProgressBarWidget(
+                    current: currentProgress,
+                    total: totalProgress,
+                    progressColor: AppColors.background,
+                    backgroundColor: Colors.white24,
+                    textColor: AppColors.background,
+                    height: 6,
+                  ),
+                ),
               ],
-            ),
-            const SizedBox(height: 16),
-            ProgressBarWidget(
-              current: currentProgress,
-              total: totalProgress,
-              progressColor: AppColors.background,
-              backgroundColor: Colors.white24,
-              textColor: AppColors.background,
-              height: 6,
             ),
           ],
         ),
