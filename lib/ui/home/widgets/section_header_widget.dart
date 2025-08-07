@@ -18,7 +18,7 @@ class SectionHeaderWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 0),
         child: Row(
           children: [
             Text(
@@ -39,10 +39,7 @@ class SectionHeaderWidget extends StatelessWidget {
                   size: 16,
                 ),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 40,
-                  minHeight: 40,
-                ),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               ),
           ],
         ),

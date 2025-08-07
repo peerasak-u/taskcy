@@ -83,13 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const MotivationalBannerWidget(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 30),
           if (homeData.projects.isNotEmpty) ...[
             SizedBox(
               height: 150,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 itemCount: homeData.projects.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 30),
           ],
           if (homeData.inProgressTasks.isNotEmpty) ...[
             SectionHeaderWidget(
