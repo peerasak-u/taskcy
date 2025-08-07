@@ -35,10 +35,7 @@ class ProjectSelectorWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.transparent,
-              width: 2,
-            ),
+            border: Border.all(color: Colors.transparent, width: 2),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<Project>(
@@ -78,38 +75,21 @@ class ProjectSelectorWidget extends StatelessWidget {
                   );
                 }).toList();
               },
-              items: availableProjects.map<DropdownMenuItem<Project>>((Project project) {
+              items: availableProjects.map<DropdownMenuItem<Project>>((
+                Project project,
+              ) {
                 return DropdownMenuItem<Project>(
                   value: project,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          project.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (project.description.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            project.description,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      project.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 );
