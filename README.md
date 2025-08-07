@@ -27,31 +27,20 @@ This project demonstrates **Clean Architecture** implementation with clear separ
 graph TB
     subgraph "UI Layer"
         A[Screens & Widgets]
-        B[BLoC/Cubit]
-        C[View Models]
     end
 
-    subgraph "Domain Layer"
-        D[Business Models]
-        E[Repository Interfaces]
+    subgraph "Logic Layer"
+        B[BLoC/Cubit]
     end
 
     subgraph "Data Layer"
-        G[Repository Implementations]
+        E[Repository Interfaces]
         H[Local Services]
-        I[Mock Data]
     end
 
     A --> B
-    B --> C
     B --> E
-    E --> G
-    G --> H
-    H --> I
-
-    B --> D
-    E --> D
-    G --> D
+    E --> H
 ```
 
 ## 🧭 Navigation Structure
@@ -73,23 +62,16 @@ graph TD
     E --> J[Profile Tab - Index 4]
 
     F --> F1[Today Tasks]
-    F --> F2[Task Details]
     F --> F3[Monthly View]
 
     G --> G1[All Projects]
-    G --> G2[In Progress]
-    G --> G3[Completed]
 
     H --> H1[Add Task]
     H --> H2[Create Team]
-    H --> H3[Create Project]
 
     I --> I1[Team Chats]
-    I --> I2[Direct Messages]
 
     J --> J1[Profile Settings]
-    J --> J2[Edit Profile]
-    J --> J3[Language Settings]
 ```
 
 ## 🏛️ Project Structure
