@@ -5,7 +5,8 @@ import '../../../domain/models/project.dart';
 import '../../../domain/models/user.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
-import '../../task_list/cubit/task_list_cubit.dart';
+import '../../task_list/bloc/task_list_bloc.dart';
+import '../../task_list/bloc/task_list_event.dart';
 import '../bloc/add_task_bloc.dart';
 import '../bloc/add_task_event.dart';
 import '../bloc/add_task_state.dart';
@@ -86,10 +87,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         if (state is AddTaskSuccess) {
           // Refresh task list if available
           try {
-            context.read<TaskListCubit>().refresh();
+            context.read<TaskListBloc>().add(const RefreshTaskList());
             debugPrint('🔄 AddTaskScreen: Triggered task list refresh after task creation');
           } catch (e) {
-            debugPrint('⚠️ AddTaskScreen: TaskListCubit not found, refresh not triggered');
+            debugPrint('⚠️ AddTaskScreen: TaskListBloc not found, refresh not triggered');
           }
           
           Navigator.of(context).pop();

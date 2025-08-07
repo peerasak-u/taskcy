@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 
 import '../../../domain/models/task.dart';
-import '../cubit/task_list_state.dart';
+import '../bloc/task_list_state.dart';
 import 'task_list_item_view_model.dart';
 
 class TaskListViewModel extends Equatable {

@@ -8,8 +8,9 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/header_widget.dart';
 import '../../shared/widgets/loading_state_widget.dart';
 import '../../shared/widgets/user_avatar_stack_widget.dart';
-import '../cubit/task_list_cubit.dart';
-import '../cubit/task_list_state.dart';
+import '../bloc/task_list_bloc.dart';
+import '../bloc/task_list_event.dart';
+import '../bloc/task_list_state.dart';
 
 class TaskListScreen extends StatelessWidget {
   final String taskType;
@@ -23,12 +24,12 @@ class TaskListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Initialize task list after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TaskListCubit>().initialize(taskType: taskType);
+      context.read<TaskListBloc>().add(InitializeTaskList(taskType: taskType));
     });
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<TaskListCubit, TaskListState>(
+        child: BlocBuilder<TaskListBloc, TaskListState>(
           builder: (context, state) {
             if (state is TaskListLoaded) {
               return Column(
@@ -42,6 +43,42 @@ class TaskListScreen extends StatelessWidget {
                       const LoadingStateWidget() : _buildContent(context, state),
                   ),
                 ],
+              );
+            } else if (state is TaskListError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Error loading tasks',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => context.read<TaskListBloc>().add(const RefreshTaskList()),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               );
             }
             return const LoadingStateWidget();
@@ -101,7 +138,7 @@ class TaskListScreen extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => context.read<TaskListCubit>().toggleTaskType(),
+            onTap: () => context.read<TaskListBloc>().add(const ToggleTaskType()),
             child: Container(
               width: 48,
               height: 48,
@@ -130,7 +167,7 @@ class TaskListScreen extends StatelessWidget {
       child: _DateStripWidget(
         selectedDate: state.taskListData.selectedDate,
         onDateSelected: (date) {
-          context.read<TaskListCubit>().selectDate(date);
+          context.read<TaskListBloc>().add(SelectDate(date));
         },
       ),
     );
@@ -147,10 +184,10 @@ class TaskListScreen extends StatelessWidget {
         selectedDate: state.taskListData.selectedDate,
         taskCountsByDate: state.taskListData.taskCountsByDate,
         onDateSelected: (date) {
-          context.read<TaskListCubit>().selectDate(date);
+          context.read<TaskListBloc>().add(SelectDate(date));
         },
         onMonthChanged: (month) {
-          context.read<TaskListCubit>().navigateToMonth(month);
+          context.read<TaskListBloc>().add(NavigateToMonth(month));
         },
       );
     }
