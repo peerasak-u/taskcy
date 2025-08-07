@@ -131,13 +131,13 @@ Icon(Icons.check_circle, color: AppColors.success)
 - `ProjectsBloc`: Project management with filtering
 - `ProfileBloc`: User profile with statistics
 - `ChatBloc`: Real-time chat functionality
+- `TaskListCubit`: Basic list operations
 
 ### Cubit Pattern (Simple State)
 
 - `AuthCubit`: Authentication state
 - `NavigationCubit`: Tab navigation
 - `ThemeCubit`: Theme switching
-- `TaskListCubit`: Basic list operations
 
 ## 📱 Available Screens
 
