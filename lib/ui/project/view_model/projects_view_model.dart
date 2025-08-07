@@ -44,6 +44,7 @@ class ProjectItemViewModel extends Equatable {
   final String id;
   final String title;
   final String category;
+  final String teamName;
   final String emoji;
   final List<String> teamAvatars;
   final String progress;
@@ -54,6 +55,7 @@ class ProjectItemViewModel extends Equatable {
     required this.id,
     required this.title,
     required this.category,
+    required this.teamName,
     required this.emoji,
     required this.teamAvatars,
     required this.progress,
@@ -71,6 +73,7 @@ class ProjectItemViewModel extends Equatable {
       id: project.id,
       title: '${project.name} ${_getProjectEmoji(project.name)}',
       category: _getCategoryFromDescription(project.description),
+      teamName: project.team.name,
       emoji: _getProjectEmoji(project.name),
       teamAvatars: _getTeamAvatars(project.team.members),
       progress: '$completed/$total',
@@ -136,6 +139,7 @@ class ProjectItemViewModel extends Equatable {
         id,
         title,
         category,
+        teamName,
         emoji,
         teamAvatars,
         progress,

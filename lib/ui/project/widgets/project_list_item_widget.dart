@@ -9,11 +9,7 @@ class ProjectListItemWidget extends StatelessWidget {
   final ProjectItemViewModel project;
   final VoidCallback? onTap;
 
-  const ProjectListItemWidget({
-    super.key,
-    required this.project,
-    this.onTap,
-  });
+  const ProjectListItemWidget({super.key, required this.project, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +17,12 @@ class ProjectListItemWidget extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        height: 93,
         decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: AppColors.outline, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,16 +36,15 @@ class ProjectListItemWidget extends StatelessWidget {
                       Text(
                         project.title,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 4),
                       Text(
-                        project.category,
+                        project.teamName,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -62,7 +52,10 @@ class ProjectListItemWidget extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.secondary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -78,25 +71,27 @@ class ProjectListItemWidget extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 UserAvatarStackWidget(
                   avatarUrls: project.teamAvatars,
                   size: 24,
                 ),
-                const Spacer(),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.5 * 0.5,
+                  child: ProgressBarWidget(
+                    current: (project.progressPercentage * 100).round(),
+                    total: 100,
+                    progressColor: project.progressColor,
+                    backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
+                    textColor: AppColors.textSecondary,
+                    height: 8,
+                    showText: false,
+                  ),
+                ),
               ],
-            ),
-            const SizedBox(height: 12),
-            ProgressBarWidget(
-              current: (project.progressPercentage * 100).round(),
-              total: 100,
-              progressColor: project.progressColor,
-              backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
-              textColor: AppColors.textSecondary,
-              height: 4,
-              showText: false,
             ),
           ],
         ),
